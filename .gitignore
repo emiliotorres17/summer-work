@@ -11,3 +11,6 @@ tags
 *.swo
 *.swq
 *.dat
+*.o
+*.c
+*.mod
