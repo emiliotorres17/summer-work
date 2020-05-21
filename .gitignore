@@ -14,3 +14,8 @@ tags
 *.o
 *.c
 *.mod
+*.o
+*.png
+*.mod
+*.txt
+*.dat
