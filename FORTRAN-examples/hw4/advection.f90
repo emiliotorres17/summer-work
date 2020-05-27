@@ -3,15 +3,15 @@ program advection
     ! Preamble                                                            !
     !---------------------------------------------------------------------!
     use precision_m
-    implicit none              
+    implicit none
     real(WP), parameter             :: pi = 4.0_WP*atan(1.0_WP)
-    integer, parameter              :: n = 250                                                                                              
+    integer, parameter              :: n = 250
     real(WP), dimension(0:n)        :: x, y
     real(WP), dimension(0:n,0:n)    :: u, unew
     real(WP)                        :: dx, dy, dt
     integer                         :: i, j, k
     real(WP)                        :: del, p
-    integer                         :: tfinal = 2
+    integer                         :: tf = 20
     real(WP)                        :: C, D
     !---------------------------------------------------------------------!
     ! Domain variables                                                    !
@@ -35,7 +35,7 @@ program advection
     do i = 0, n
         write(2,*) x(i)
         write(3,*) y(i)
-    end do 
+    end do
     close(unit=2)
     close(unit=3)
     !---------------------------------------------------------------------!
@@ -46,12 +46,12 @@ program advection
             del = sqrt((x(i)-1.5_WP)**2.0_WP + (y(j)-3.0_WP)**2.0_WP)
             if (del <= 1.0_WP) then
                 p = cos(0.5_WP*pi*del)
-            else        
+            else
                 p = 0.0_WP
             end if
             u(i,j) = p
             print *, u(i,j)
-        end do 
+        end do
     end do
     print *, maxval(u)
     open(unit=1, file='IC.dat')
@@ -66,13 +66,13 @@ program advection
     ! time loop                                                           !
     !---------------------------------------------------------------------!
     unew = u
-    do k = 1, int(1*100)
+    do k = 1, int(tf*100)
         !-----------------------------------------------------------------!
         ! looping over the domain                                         !
         !-----------------------------------------------------------------!
-        do j = 1, n-1
-            do i = 1, n-1
-                unew(i,j) = u(i,j) - dt*(C*(u(i,j)-u(i-1,j))/dx + D*(u(i,j)-u(i,j-1))/dy)   
+        do j = 1, n
+            do i = 1, n
+                unew(i,j) = u(i,j) - dt*(C*(u(i,j)-u(i-1,j))/dx + D*(u(i,j)-u(i,j-1))/dy)
             end do
         end do
         !-----------------------------------------------------------------!
@@ -80,15 +80,13 @@ program advection
         !-----------------------------------------------------------------!
         do j = 0, n
             unew(0,j) = unew(n,j)
-            unew(n,j) = unew(0,j)
-        end do 
+        end do
         !-----------------------------------------------------------------!
-        ! BC at y = 0                                                     !
+        ! BC at y = 0  and y = n                                          !
         !-----------------------------------------------------------------!
         do i = 0, n
             unew(i,0) = unew(i,n)
-            unew(i,n) = unew(i,0)
-        end do 
+        end do
         u = unew        ! updating solution
     end do
     !---------------------------------------------------------------------!
