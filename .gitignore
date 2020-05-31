@@ -19,3 +19,12 @@ tags
 *.mod
 *.txt
 *.dat
+*mp4
+python-code/data/*
+python-code/media/*
+FORTRAN-examples/hw4/advection
+FORTRAN-examples/hw4/fftw_test/*
+FORTRAN-examples/hw5/diffusion
+FORTRAN-examples/tutorial-6-5/wave
+FORTRAN-examples/tutorial-7/plotter
+python-code/FORTRAN-code/ns_solve
