@@ -1,19 +1,31 @@
 #!/usr/bin/env python3
+"""========================================================================
+Purpose:
+    py_471proj3.py: Spring 2005 MAE471 2D Lid-Driven Cavity Navier-Stokes
+    Project Converted to Python
 
-""" py_471proj3.py: Spring 2005 MAE471 2D Lid-Driven Cavity Navier-Stokes
-    Project Converted to Python"""
-
+Author:
+    Jon Baltzer
+========================================================================"""
+#=========================================================================#
+# Preamble                                                                #
+#=========================================================================#
 __author__    = "Jon Baltzer"
-
+#-------------------------------------------------------------------------#
+# Python packages                                                         #
+#-------------------------------------------------------------------------#
+import os
 from subprocess import call
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-
+#-------------------------------------------------------------------------#
+# Provisional time step                                                   #
+#-------------------------------------------------------------------------#
 def ddt_prov(M, N, dx, dy, nu, u, v, ul, ur, ub, ut, vl, vr, vb, vt):
 
     """ calculates time rate of change of provisional velocity field u*,v* 
-        (without pressure term)"""
+        (without pressure term) """
 
     dx2 = dx*dx
     dy2 = dy*dy
@@ -150,12 +162,15 @@ def ddt_prov(M, N, dx, dy, nu, u, v, ul, ur, ub, ut, vl, vr, vb, vt):
         Ny[j][M] += (0.5*(ur[j]+ur[j+1])*(vr[j]) - 0.25*(u[j][M-1]+u[j+1][M-1])*(v[j][M]+v[j][M-1]))/dx
 
     return [Lu, Lv, Nx, Ny]
-
+#-------------------------------------------------------------------------#
+# Calculating pressure                                                    #
+#-------------------------------------------------------------------------#
 def calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl, vr, vb, vt):
+
+    """ Calculating the pressure """
 
     gsiter = 0
     normnew = 0.
-    #normold = 0.
     diffnorm = 0.
     normerror = 2.*maxerror      # normerror is relative error in norm of diagonal
     rhs = 0.
@@ -228,22 +243,27 @@ def calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl, vr, vb, 
     print("%16.5e: %5i iterations" % (normerror, gsiter))
 
     return P
-
+#=========================================================================#
+# Main code                                                               #
+#=========================================================================#
 if __name__ == '__main__':
     #---------------------------------------------------------------------#
     # Path variables                                                      #
     #---------------------------------------------------------------------#
     call(['clear'])
-    media_path  = 'media/'
+    sep         = os.sep
+    pwd         = os.getcwd()
+    data_path   = pwd + '%cdata%c'          %(sep, sep) 
+    media_path  = pwd + '%cmedia%c'         %(sep, sep)
     #---------------------------------------------------------------------#
     # Defining domain variables                                           #
     #---------------------------------------------------------------------#
-    M   = 20        # nx
-    N   = 20        # ny
-    lx  = 1.0       # length x-dir
-    ly  = 1.0       # length y-dir
-    dx  = lx/M      # x step size
-    dy  = ly/N      # y step size
+    M   = 20                                # nx
+    N   = 20                                # ny
+    lx  = 1.0                               # length x-dir
+    ly  = 1.0                               # length y-dir
+    dx  = lx/M                              # x step size
+    dy  = ly/N                              # y step size
     #---------------------------------------------------------------------#
     # Writing and plotting flags                                          #
     #---------------------------------------------------------------------#
@@ -252,67 +272,123 @@ if __name__ == '__main__':
     write_P                 = True
     write_divergence_field  = True
     plot_vel_field          = True
-    
-    # main code
-    
-    u = np.zeros((N+1,M))
-    v = np.zeros((N,M+1))
-    ustar = np.zeros((N+1,M))
-    vstar = np.zeros((N,M+1))
-    
-    # 
-    #Nx = np.zeros((N+1,M))
-    #Ny = np.zeros((N,M+1))
-    #Lu = np.zeros((N+1,M))
-    #Lv = np.zeros((N,M+1))
-    
-    ul = np.zeros((N+1))
-    ur = np.zeros((N+1))
-    vl = np.zeros((N+1))
-    vr = np.zeros((N+1))
-    ub = np.zeros((M+1))
-    ut = np.zeros((M+1))
-    vb = np.zeros((M+1))
-    vt = np.zeros((M+1))
-    
-    #P = np.zeros((N+1,M+1))
-    #Pold = np.zeros((N+1,M+1))
-    
-    maxerror    = 1.e-12
+    #---------------------------------------------------------------------#
+    # Preallocation variables                                             #
+    #---------------------------------------------------------------------#
+    u       = np.zeros((N+1,M))             # u-velocity field
+    v       = np.zeros((N,M+1))             # v-velocity filed
+    ustar   = np.zeros((N+1,M))             # u-star non pressure term
+    vstar   = np.zeros((N,M+1))             # v-star non pressure term
+    ul      = np.zeros((N+1))               # u-left wall boundary velocity
+    ur      = np.zeros((N+1))               # u-right wall boundary velocity
+    vl      = np.zeros((N+1))               # v-left wall boundary velocity  
+    vr      = np.zeros((N+1))               # v-right wall boundary velocity 
+    ub      = np.zeros((M+1))               # u-bottom wall velocity
+    ut      = np.zeros((M+1))               # u-top wall velocity
+    vb      = np.zeros((M+1))               # v-bottom wall velocity
+    vt      = np.zeros((M+1))               # v-top wall velocity
+    #---------------------------------------------------------------------#
+    # Defining the error variables                                        #
+    #---------------------------------------------------------------------#
+    maxerror    = 1.e-12            # not sure this specific variables
     diverg      = 0.
     maxdiverg   = 0.
-    
-    ## set up BC's, velocity components at boundaries are all set to 0 until now -- lid-driven cavity
-    #for i in range(1,M+1):
-    #    ut[i] = 1.
-    
-    # set up BC's, velocity components at boundaries are all set to 0 until now -- unidirectional flow
+    #---------------------------------------------------------------------#
+    # set up BC's, velocity components at boundaries are all set to 0     #
+    # until now -- lid-driven cavity                                      #
+    # I think these are the left and right boundaries
+    #---------------------------------------------------------------------#
+    #---------------------------------------------------------------------#
+    # set up BC's, velocity components at boundaries are all set to 0     #
+    # until now -- unidirectional flow                                    #
+    #---------------------------------------------------------------------#
     for i in range(1,M+1):
-        ut[i] = 1.
-        ub[i] = 1.
-    
+        ut[i] = 1.                  # setting the u-vel of top wall to 1 
+        ub[i] = 0.0                 # setting the u-vel of bottom wall to 1
     for j in range(1,N+1):
-        ur[j] = 1.
-        ul[j] = 1.
-    
-    # initial condition has already been set to 0 everywhere
-    
-    nu      = 0.015                 # viscosity
-    dt      = 0.25*dx*dx/nu/2.
-    tmax    = 15.0
-    
-    # file output
-    if write_vel_field: fvelfld = open('vel_field.txt', 'w')
-    if write_terms: fterms = open('terms.txt', 'w')
-    if write_P: fP = open('P.txt', 'w')
-    if write_divergence_field: fdiverg = open('divg_field.txt', 'w')
-    
-    Xgrid,Ygrid = np.meshgrid(np.linspace(dx/2,lx-dx/2,M),np.linspace(dy/2,ly-dy/2,N))
-    
-    # main time stepping loop
+        vr[j] = 0.0                 # not sure of these are correct
+        vl[j] = 0.0                 # I think it should vl and ur
+    #---------------------------------------------------------------------#
+    # Setting the time step variables                                     #
+    #---------------------------------------------------------------------#
+    nu      = 0.01                  # viscosity
+    dt      = 0.25*dx*dx/nu/2.      # time step
+    tmax    = 40.0                  # final time
+    #---------------------------------------------------------------------#
+    # velocity output files                                               #
+    #---------------------------------------------------------------------#
+    if write_vel_field:
+        #-----------------------------------------------------------------#
+        # u-velocity field                                                #
+        #-----------------------------------------------------------------#
+        if os.path.exists(data_path + 'u-vel_field.txt'):
+            os.remove(data_path + 'u-vel_field.txt')
+        u_fvelfld   = open(data_path + 'u-vel_field.txt', 'w')
+        #-----------------------------------------------------------------#
+        # v-velocity field                                                #
+        #-----------------------------------------------------------------#
+        if os.path.exists(data_path + 'v-vel_field.txt'):
+            os.remove(data_path + 'v-vel_field.txt')
+        v_fvelfld   = open(data_path + 'v-vel_field.txt', 'w')
+    #---------------------------------------------------------------------#
+    # NEED TO COMMENT                                                     #
+    #---------------------------------------------------------------------#
+    if write_terms:
+        if os.path.exists(data_path + 'terms.txt'):
+            os.remove(data_path + 'terms.txt')
+        fterms      = open(data_path + 'terms.txt', 'w')
+    #---------------------------------------------------------------------#
+    # Pressure output files                                               #
+    #---------------------------------------------------------------------#
+    if write_P:
+        if os.path.exists(data_path + 'P.txt'):
+            os.remove(data_path + 'P.txt')
+        fP      = open(data_path + 'P.txt', 'w')
+    #---------------------------------------------------------------------#
+    # Divergence field                                                    #
+    #---------------------------------------------------------------------#
+    if write_divergence_field:
+        if os.path.exists(data_path + 'divg_field.txt'):
+            os.remove(data_path + 'divg_field.txt')
+        fdiverg = open(data_path + 'divg_field.txt', 'w')
+    #---------------------------------------------------------------------#
+    # Setting the cell centered mesh grid                                 #
+    #---------------------------------------------------------------------#
+    [Xgrid, Ygrid]      = np.meshgrid(np.linspace(dx/2, lx-dx/2, M),\
+                                    np.linspace(dy/2,ly-dy/2,N))
+    #---------------------------------------------------------------------#
+    # main time stepping loop                                             #
+    #---------------------------------------------------------------------#
     for nstep in range(1, int(1.0000001*tmax/dt)+1):
-        [Lu, Lv, Nx, Ny] = ddt_prov(M, N, dx, dy, nu, u, v, ul, ur, ub, ut, vl, vr, vb, vt)
-    
+        [Lu, Lv, Nx, Ny]    = ddt_prov(M, N, dx, dy, nu, u, v, ul, ur, ub,\
+                                            ut, vl, vr, vb, vt)
+        #-----------------------------------------------------------------#
+        # u-star and v-star solution                                      #
+        #-----------------------------------------------------------------#
+        for j in range(1, N+1):
+            for i in range(1, M):
+                ustar[j][i] = u[j][i] + dt*(-Nx[j][i] + Lu[j][i])
+        for j in range(1, N):
+            for i in range(1, M+1):
+                vstar[j][i] = v[j][i] + dt*(-Ny[j][i] + Lv[j][i])
+        #-----------------------------------------------------------------#
+        # Calculating the pressure term                                   #
+        #-----------------------------------------------------------------#
+        P                   = calcpress(M, N, dx, dy, maxerror, ustar,\
+                                            vstar, ul, ur, ub, ut, vl,\
+                                            vr, vb, vt)
+        #-----------------------------------------------------------------#
+        # u and solution                                                  #
+        #-----------------------------------------------------------------#
+        for j in range(1, N+1):
+            for i in range(1, M):
+                u[j][i] = ustar[j][i] - (P[j][i+1]-P[j][i])/dx
+        for j in range(1, N):
+            for i in range(1, M+1):
+                v[j][i] = vstar[j][i] - (P[j+1][i]-P[j][i])/dy
+        #-----------------------------------------------------------------#
+        # NEED TO COMMENT                                                 #
+        #-----------------------------------------------------------------#
         if write_terms:
             for j in range(1, N+1):
                 for i in range(1, M):
@@ -334,33 +410,18 @@ if __name__ == '__main__':
                     fterms.write("%16.5e" % Ny[j][i])
                 fterms.write("\n")
             fterms.write("\n")
-    
-        for j in range(1, N+1):
-            for i in range(1, M):
-                ustar[j][i] = u[j][i] + dt*(-Nx[j][i] + Lu[j][i])
-    
-        for j in range(1, N):
-            for i in range(1, M+1):
-                vstar[j][i] = v[j][i] + dt*(-Ny[j][i] + Lv[j][i])
-    
-        P = calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl, vr, vb, vt)
-    
+        #-----------------------------------------------------------------#
+        # Writing pressure solution                                       #
+        #-----------------------------------------------------------------#
         if write_P:
             for j in range(1, N+1):
                 for i in range(1, M+1):
                     fP.write("%16.5e" % P[j][i])
                 fP.write("\n")
             fP.write("\n")
-    
-        for j in range(1, N+1):
-            for i in range(1, M):
-                u[j][i] = ustar[j][i] - (P[j][i+1]-P[j][i])/dx
-    
-        for j in range(1, N):
-            for i in range(1, M+1):
-                v[j][i] = vstar[j][i] - (P[j+1][i]-P[j][i])/dy
-    
-        # output cell-centered (interpolated) field values
+        #-----------------------------------------------------------------#
+        # output cell-centered (interpolated) u-velocity field values     #
+        #-----------------------------------------------------------------#
         if write_vel_field or plot_vel_field:
             uinterp = np.zeros((N,M))
             vinterp = np.zeros((N,M))
@@ -368,60 +429,86 @@ if __name__ == '__main__':
                 # left
                 velcent = (ul[j]+u[j][1])/2.
                 uinterp[j-1][0] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
+                if write_vel_field: 
+                    u_fvelfld.write("%16.5e" % velcent)
+                # interior
                 for i in range(2, M):
                     velcent = (u[j][i]+u[j][i-1])/2.
                     uinterp[j-1][i-1] = velcent
-                    if write_vel_field: fvelfld.write("%16.5e" % velcent)
+                    if write_vel_field: 
+                        u_fvelfld.write("%16.5e" %velcent)
                 # right
                 velcent = (ur[j]+u[j][M-1])/2.
                 uinterp[j-1][M-1] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
-                if write_vel_field: fvelfld.write("\n")
-            if write_vel_field: fvelfld.write("\n")
-    
+                if write_vel_field:
+                    u_fvelfld.write("%16.5e" %velcent)
+                if write_vel_field:
+                    u_fvelfld.write("\n")
+            if write_vel_field: 
+                u_fvelfld.write("\n")
+        #-----------------------------------------------------------------#
+        # output cell-centered (interpolated) v-velocity field values     #
+        #-----------------------------------------------------------------#
             for i in range(1, M+1):
                 velcent = (v[1][i]+vb[i])/2.
                 vinterp[0][i-1] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
-            if write_vel_field: fvelfld.write("\n")
+                if write_vel_field:
+                    v_fvelfld.write("%16.5e" % velcent)
+            if write_vel_field: 
+                v_fvelfld.write("\n")
             for j in range(2, N):
                 for i in range(1, M+1):
                     velcent = (v[j][i]+v[j-1][i])/2.
                     vinterp[j-1][i-1] = velcent
-                    if write_vel_field: fvelfld.write("%16.5e" % velcent)
-                if write_vel_field: fvelfld.write("\n")
+                    if write_vel_field:
+                        v_fvelfld.write("%16.5e" % velcent)
+                if write_vel_field:
+                    v_fvelfld.write("\n")
             for i in range(1, M+1):
                 velcent = (v[N-1][i]+vt[i])/2.
                 vinterp[N-1][i-1] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
-            if write_vel_field: fvelfld.write("\n")
-            if write_vel_field: fvelfld.write("\n")
-    
+                if write_vel_field:
+                    v_fvelfld.write("%16.5e" % velcent)
+            if write_vel_field:
+                v_fvelfld.write("\n")
+            if write_vel_field:
+                v_fvelfld.write("\n")
+        #-----------------------------------------------------------------#
+        # Plotting the velocity field                                     #
+        #-----------------------------------------------------------------#
         if plot_vel_field:
             fig, ax = plt.subplots()
             q = ax.quiver(Xgrid,Ygrid,uinterp,vinterp)
             ax.set_aspect('equal')
             plt.savefig(media_path + 'plot-' +  str(nstep) + '.png')
             plt.close()
-    
-        # compute cell divergence
-    
+        #-----------------------------------------------------------------#
+        # compute cell divergence                                         #
+        #-----------------------------------------------------------------#
+        #-----------------------------------------------------------------#
+        # bottom section                                                  #
+        #-----------------------------------------------------------------#
         # bottom left
-        diverg = (u[1][1]-ul[1])/dx + (v[1][1]-vb[1])/dy
-        maxdiverg = diverg
-        if write_divergence_field: fdiverg.write("%16.5e" % diverg)
+        if write_divergence_field:
+            fdiverg.write("%16.5e" % diverg)
         # across the bottom
         for i in range(2, M):
             diverg = (u[1][i]-u[1][i-1])/dx + (v[1][i]-vb[i])/dy
-            if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-            if write_divergence_field: fdiverg.write("%16.5e" % diverg)
+            if abs(diverg)>abs(maxdiverg):
+                maxdiverg = diverg
+            if write_divergence_field:
+                fdiverg.write("%16.5e" % diverg)
         # bottom right
         diverg = (ur[1]-u[1][M-1])/dx + (v[1][M]-vb[M])/dy
-        if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-        if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        if write_divergence_field: fdiverg.write("\n")
-    
+        if abs(diverg)>abs(maxdiverg):
+            maxdiverg = diverg
+        if write_divergence_field:
+            fdiverg.write("%16.5e" %(diverg))
+        if write_divergence_field:
+            fdiverg.write("\n")
+        #-----------------------------------------------------------------#
+        # Middle section                                                  #
+        #-----------------------------------------------------------------#
         for j in range(2, N):
             # middle left
             diverg = (u[j][1]-ul[j])/dx + (v[j][1]-v[j-1][1])/dy
@@ -434,10 +521,15 @@ if __name__ == '__main__':
                 if write_divergence_field: fdiverg.write("%16.5e" % diverg)
             # middle right
             diverg = (ur[j]-u[j][M-1])/dx + (v[j][M]-v[j-1][M])/dy
-            if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-            if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-            if write_divergence_field: fdiverg.write("\n")
-    
+            if abs(diverg)>abs(maxdiverg): 
+                maxdiverg = diverg
+            if write_divergence_field: 
+                fdiverg.write("%16.5e" %(diverg))
+            if write_divergence_field: 
+                fdiverg.write("\n")
+        #-----------------------------------------------------------------#
+        # Top section                                                     #
+        #-----------------------------------------------------------------#
         # top left
         diverg = (u[N][1]-ul[N])/dx + (vt[1]-v[N-1][1])/dy
         if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
@@ -453,11 +545,19 @@ if __name__ == '__main__':
         if write_divergence_field: fdiverg.write("%16.5e" % diverg)
         if write_divergence_field: fdiverg.write("\n")
         if write_divergence_field: fdiverg.write("\n")
-    
-        print("%5i/%5i | Maximum velocity divergence: %16.5e" % (nstep, int(1.0000001*tmax/dt), maxdiverg))
-    
-    if write_vel_field: fvelfld.close()
-    if write_terms: fterms.close()
-    if write_P: fP.close()
-    if write_divergence_field: fdiverg.close()
+
+        print("%5i/%5i | Maximum velocity divergence: %16.5e" \
+                    % (nstep, int(1.0000001*tmax/dt), maxdiverg))
+    #---------------------------------------------------------------------#
+    # Closing files                                                       #
+    #---------------------------------------------------------------------#
+    if write_vel_field:
+        u_fvelfld.close()
+        v_fvelfld.close()
+    if write_terms:
+        fterms.close()
+    if write_P:
+        fP.close()
+    if write_divergence_field:
+        fdiverg.close()
 
