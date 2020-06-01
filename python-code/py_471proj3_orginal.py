@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """py_471proj3.py: Spring 2005 MAE471 2D Lid-Driven Cavity Navier-Stokes Project Converted to Python"""
 
