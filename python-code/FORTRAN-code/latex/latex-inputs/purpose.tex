@@ -1,0 +1,30 @@
+\section{Purpose}
+The purpose of this document is to serve as a ``running'' document to 
+describe in detail the RANS/BHR solver used to solve a 1D flow problem 
+including a description of the finite difference method, 
+boundary conditions, and initial conditions. 
+
+\section{Lid Cavity Problem}
+The RANS/BHR code has been developed by making changes to a first order forward
+in time central in space (FTCS) Navier-Stokes solver for a 2D lid cavity
+problem solved on a staggered grid using a factorial step method.  
+\subsection{Method}
+Starting with the governing equations for the non-dimensional Navier-Stokes
+equations,
+\begin{subequations}
+    \begin{equation}
+        \div{\mathbf{u}} = 0
+        \label{eq:masss}
+    \end{equation}
+    \begin{equation}
+        \pdv{\mathbf{u}}{t} + \div \left({\mathbf{u}\mathbf{u}}\right) = 
+            - \grad{p} + \frac{1}{Re} \laplacian{\mathbf{u}}
+            \label{eq:momentum}
+    \end{equation}
+\end{subequations}                              
+where Eqs.~\ref{eq:mass} and \ref{eq:momentum} represent the transport of mass
+and momentum respectively. As stated above the solution to the lid cavity is
+obtained using a factorial step method, which decouples the velocity and the
+pressure terms by separating the momentum equation in to parts in order to
+enforce the mass conservation restraint. This approach gives the following 
+set of equations 

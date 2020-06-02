@@ -1,0 +1,286 @@
+%=========================================================================%
+%latex packages                                                           %
+%=========================================================================%
+
+%\usepackage[a4paper, bindingoffset = 0.2in,
+%            left = 1in, right = 1in, top = 1in,
+%            bottom = 1in, footskip = 0.25in]{geometry}     %setting the paper margin
+                                        %used to break the citations for ling citations
+\usepackage{breakcites}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[margin = 0.9in]{geometry}
+\usepackage[euler]{textgreek}           %used for the text greek symbols in the names
+\usepackage{physics}                    %used for the equations
+\usepackage{array}                      %used for setting up the tables
+%\usepackage{float}                      %places the figures and tables
+\usepackage{amssymb}
+\usepackage{lastpage}                   %labels the last page
+\usepackage{graphicx}                   %making the figures
+\usepackage{color}                      %full color palette
+\usepackage{longtable}                  %makes the table
+\usepackage{fancyhdr}                   %setting the paper style
+\usepackage{siunitx}                    %used for the units
+\usepackage{sectsty}                    %used for the section style
+\usepackage{blindtext}                  %used to handle the blind text
+\usepackage{amsmath}                    %math package
+\usepackage{ifxetex}                    %used for the MD5SUM
+\usepackage[flushleft]{threeparttable}  %making the footnotes in tables
+\usepackage{threeparttablex}            %second part for the table
+\usepackage{pdftexcmds}                 %used to perform pdf commands
+\usepackage{lscape}                     %used to make the page landscape
+\usepackage{refcount}                   %used to reference numbers
+\usepackage{listings}                   %provide source code listing
+\usepackage{tikz}                       %for a black box on title page
+\usepackage{pdfpages}                   %for pdf pages to be added
+\usepackage[printwatermark]{xwatermark} %used for water mark
+\usepackage{xcolor}                     %water mark color
+\usepackage{booktabs}
+\usepackage{chngcntr}
+\usepackage{floatrow}                   %centering all figures
+\usepackage[section]{placeins}          %controls float placement to ensure figures are in proper
+\usepackage[none]{hyphenat}             % prevent hyphenation
+\usepackage{scrextend}
+\usepackage{xr-hyper}                   %allow references between documents
+\usepackage{hyperref}                   %highlights references
+\usepackage[all]{hypcap}                %for going to the top of an image when a figure ref is clicked
+%=========================================================================%
+%hyperlink setup                                                          %
+%=========================================================================%
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{citeblue}{RGB}{015, 055, 250}
+\definecolor{gblue}{RGB}{055, 055, 150}
+\definecolor{phxorange}{RGB}{229, 96, 32}
+\definecolor{dodgerblue}{RGB}{0, 90, 156}
+\definecolor{eggshell}{RGB}{240, 234, 214}
+\definecolor{pythonblue}{RGB}{24, 23, 162}
+
+\hypersetup{%color all links blue
+                plainpages=false,
+                pdftitle={\pdftitle},
+                pdfauthor={Emilio Torres},
+                colorlinks=true,
+                citecolor=citeblue,
+                filecolor=gblue,
+                linkcolor=gblue,
+                menucolor=gblue,
+                runcolor=gblue,
+                urlcolor=gblue,
+}
+%=========================================================================%
+%Temperature                                                              %
+%=========================================================================%
+\newcommand{\mDC}{^{\circ}\text{C}}
+\newcommand{\DC}{$^{\circ}\text{C}$}
+
+\newcommand{\DF}{$^{\circ}\text{F}$}
+\newcommand{\mDF}{^{\circ}\text{F}}
+
+\newcommand{\mDR}{^{\circ}\text{R}}
+\newcommand{\DR}{$^{\circ}\text{R}$}
+
+\newcommand{\mDK}{\text{K}}
+\newcommand{\DK}{$\text{K}$}
+%=========================================================================%
+%Multiplier                                                               %
+%=========================================================================%
+\newcommand{\multi}{ \times }
+%=========================================================================%
+%unit number setup                                                        %
+%=========================================================================%
+\sisetup
+{
+    exponent-product        =   \multi,
+    exponent-base           =   10,
+    group-digits            =   true,
+    group-separator         =   {},
+    output-decimal-marker   =   {.},
+    retain-explicit-plus,
+}
+%=========================================================================%
+%Percent                                                              %
+%=========================================================================%
+\newcommand{\percent}{\%{\;}}
+%=========================================================================%
+%listing setup                                                            %
+%=========================================================================%
+\lstset{language=python,
+    basicstyle=\footnotesize \ttfamily,
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    breaklines=true,
+    morekeywords={matlab2tikz},
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+}
+%=========================================================================%
+% Page Setup                                                              %
+%=========================================================================%
+%-------------------------------------------------------------------------%
+%Header                                                                   %
+%-------------------------------------------------------------------------%
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.0pt}
+\fancyhead[L]{}
+\fancyhead[C]{}
+\fancyhead[R]{}
+%-------------------------------------------------------------------------%
+%Footer                                                                   %
+%-------------------------------------------------------------------------%
+\renewcommand{\footrulewidth}{0.0pt}
+\fancyfoot[L]{}
+\fancyfoot[R]{\thepage}
+\fancyfoot[C]{}
+%-------------------------------------------------------------------------%
+%Page Commands                                                            %
+%-------------------------------------------------------------------------%
+\setcounter{secnumdepth}{3}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{10pt}
+%=========================================================================%
+% User Defined Functions                                                  %
+%=========================================================================%
+%-------------------------------------------------------------------------%
+% Table spacing functions                                                 %
+%-------------------------------------------------------------------------%
+%provide a centered horizontal & centered vertical wrapped table column
+\newcolumntype{A}[1]{>{\centering\arraybackslash}m{#1}}
+%provide a centered horizontal & bottom vertical wrapped table column
+\newcolumntype{B}[1]{>{\centering\arraybackslash}p{#1}}
+%provide a left horizontal & bottom vertical wrapped table column
+\newcolumntype{D}[1]{>{\raggedright\arraybackslash}p{#1}}
+%=========================================================================%
+% User Defined Functions                                                  %
+%=========================================================================%
+%-------------------------------------------------------------------------%
+% Elements and Math                                                       %
+%-------------------------------------------------------------------------%
+\newcommand{\element}[2]{$\text{#1}_{#2}$}
+\newcommand{\melement}[2]{\text{#1}_{#2}}
+%-------------------------------------------------------------------------%
+% Isotopes                                                                %
+%-------------------------------------------------------------------------%
+\newcommand{\isotope}[2]{${}^{#2} \text{#1}$}
+\newcommand{\misotope}[2]{{}^{#2} \text{#1}}
+%-------------------------------------------------------------------------%
+% Uranium Dioxide                                                         %
+%-------------------------------------------------------------------------%
+\newcommand{\UO}{$\text{U}\text{O}_{2}$}
+\newcommand{\mUO}{\text{U}\text{O}_{2}}
+%-------------------------------------------------------------------------%
+% Di-gadium Tri-oxide                                                        %
+%-------------------------------------------------------------------------%
+\newcommand{\GdO}{$\text{Gd}_{2}\text{O}_{3}$}
+\newcommand{\mGdO}{\text{Gd}_{2}\text{O}_{3}}
+%-------------------------------------------------------------------------%
+% Plutonium Dioxide                                                       %
+%-------------------------------------------------------------------------%
+\newcommand{\PuO}{$\text{PuO}_{2}$}
+\newcommand{\mPuO}{\text{PuO}_{2}}
+%-------------------------------------------------------------------------%
+% Misc. Command                                                           %
+%-------------------------------------------------------------------------%
+\newcommand{\Temp}[2]{$#1\text{#2}$}
+\newcommand{\der}{$d \varepsilon_{r}^{p}$}
+\newcommand{\detheta}{$d \varepsilon_{\theta}^{p}$}
+\newcommand{\dez}{$d \varepsilon_{z}^{p}$}
+\newcommand{\de}[1]{$d \varepsilon_{#1}^{p}$}
+\newcommand{\er}{$\varepsilon_{r}^{p}$}
+\newcommand{\etheta}{$\varepsilon_{\theta}^{p}$}
+\newcommand{\ez}{$\varepsilon_{z}^{p}$}
+\newcommand{\Volume}[2]{$#1\;\text{#2}^{3}\;$}
+%-------------------------------------------------------------------------%
+% slash indent command                                                    %
+%-------------------------------------------------------------------------%
+\newcommand{\ind}[1]{\vspace{0.25cm}\begin{addmargin}[0.5cm]{0em}#1\end{addmargin}\vspace{0.25cm}}
+%-------------------------------------------------------------------------%
+% French spacing                                                          %
+%-------------------------------------------------------------------------%
+\frenchspacing
+%-------------------------------------------------------------------------%
+% figure size                                                             %
+%-------------------------------------------------------------------------%
+\newcommand{\figheight}{0.4}
+\newcommand{\figheighttwo}[1]{#1}
+%-------------------------------------------------------------------------%
+% figure size 2                                                           %
+%-------------------------------------------------------------------------%
+\newcommand{\test}{height=0.4\\textheight}
+%-------------------------------------------------------------------------%
+% SI-Unitx Commands                                                       %
+%-------------------------------------------------------------------------%
+\newcommand{\SInum}[2]{\SI{#1}{\left[#2\right]}}
+\newcommand{\sinum}[1]{\si{\left[#1\right]}}
+%-------------------------------------------------------------------------%
+% Closing inline references (i.e., (), [], {})                            %
+%-------------------------------------------------------------------------%
+\newcommand{\refclosure}[1]{(#1)}
+%-------------------------------------------------------------------------%
+% Trademark Command                                                       %
+%-------------------------------------------------------------------------%
+\newcommand{\TM}{${}^{\text{TM}}$ }
+\newcommand{\captiontext}{TEST}
+%-------------------------------------------------------------------------%
+% iteration function                                                      %
+%-------------------------------------------------------------------------%
+\newcommand{\iteration}[1]{#1-th}
+%-------------------------------------------------------------------------%
+% notes function                                                          %
+%-------------------------------------------------------------------------%
+\newcommand{\notes}[1]{\textit{#1}}
+%-------------------------------------------------------------------------%
+% Density function                                                        %
+%-------------------------------------------------------------------------%
+\newcommand{\Gden}{G_{den}}
+%-------------------------------------------------------------------------%
+% Reference place holders for in  text figures, tables , etc.             %
+%-------------------------------------------------------------------------%
+\newcommand{\refplaceholder}[1]{{\color{red}{reference #1 goes here}}}
+%-------------------------------------------------------------------------%
+% Equation labelling                                                      %
+%-------------------------------------------------------------------------%
+\newcommand{\eqlabel}[1]{Eq.~\ref{#1}}
+%-------------------------------------------------------------------------%
+% Making dashline                                                         %
+%-------------------------------------------------------------------------%
+\newcommand{\dashline}[1]
+    {
+    \raisebox{1mm}{
+        \textcolor{#1}{\rule{0.25cm}{0.5mm}}
+        \hspace{0.025cm}
+        \textcolor{#1}{\rule{0.25cm}{0.5mm}}
+        \hspace{0.025cm}
+        \textcolor{#1}{\rule{0.25cm}{0.5mm}}
+        }
+    }
+%-------------------------------------------------------------------------%
+% Color box                                                               %
+%-------------------------------------------------------------------------%
+\newcommand*{\colorboxed}{}
+\def\colorboxed#1#{%
+    \colorboxedAux{#1}%
+}
+\newcommand*{\colorboxedAux}[3]{%
+ % #1: optional argument for color model
+ % #2: color specification
+ % #3: formula
+ \begingroup
+   \colorlet{cb@saved}{.}%
+   \color#1{#2}%
+   \boxed{%
+     \color{cb@saved}%
+     #3%
+   }%
+ \endgroup
+}
+
