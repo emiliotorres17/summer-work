@@ -8,8 +8,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-M=64    # nx
-N=64    # ny
+M=32    # nx
+N=32    # ny
 
 lx = 1.0
 ly = 1.0
@@ -289,7 +289,7 @@ for j in range(1,N+1):
 nu = 0.01    # viscosity
 
 dt = 0.25*dx*dx/nu/2.
-tmax = 15.
+tmax = 15.0
 
 # file output
 if write_vel_field: fvelfld = open('vel_field.txt', 'w')
