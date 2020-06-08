@@ -5,7 +5,7 @@ Purpose:
     Project Converted to Python.
 
 Author:
-    Jon Baltzer 
+    Jon Baltzer
 ========================================================================"""
 #=========================================================================#
 # Preamble                                                                #
@@ -14,9 +14,7 @@ __author__    = "Jon Baltzer"
 #-------------------------------------------------------------------------#
 # Python packages                                                         #
 #-------------------------------------------------------------------------#
-import sys
 from subprocess import call
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 #=========================================================================#
@@ -25,220 +23,219 @@ import numpy as np
 #-------------------------------------------------------------------------#
 # Time stepping subroutine                                                #
 #-------------------------------------------------------------------------#
-def ddt_prov(M, N, dx, dy, nu, u, v, ul, ur, ub, ut, vl, vr, vb, vt):
+def ddt_prov(Min, Nin, DX, DY, NU, U, V, Ul, Ur, Ub, Ut, Vl, Vr, Vb, Vt):
 
     """ Calculates time rate of change of provisional velocity field
-        u*,v* (without pressure term) """
+        U*,V* (without pressure term) """
     #=====================================================================#
     # Domain variables                                                    #
     #=====================================================================#
-    dx2 = dx*dx                         # spatial step size
-    dy2 = dy*dy                         # spatial step size
-    Lu  = np.zeros((N+1,M))             # linear u-velocity         i.e., laplacian(u)
-    Lv  = np.zeros((N,M+1))             # linear v-velocity         i.e., laplacian(v)
-    Nx  = np.zeros((N+1,M))             # non-linear u-velocity     i.e., u dot grad(u)
-    Ny  = np.zeros((N,M+1))             # non-linear v-velocity     i.e., u dot grad(v)
+    dx2 = DX*DX                             # spatial step size
+    dy2 = DY*DY                             # spatial step size
+    LU  = np.zeros((Nin+1,Min))             # linear U-velocity         I.e., laplacian(U)
+    LV  = np.zeros((Nin,Min+1))             # linear V-velocity         I.e., laplacian(V)
+    NX  = np.zeros((Nin+1,Min))             # non-linear U-velocity     I.e., U dot grad(U)
+    NY  = np.zeros((Nin,Min+1))             # non-linear V-velocity     I.e., U dot grad(V)
     #=====================================================================#
-    # Linear terms for u-velocity                                         #
+    # Linear terms for U-velocity                                         #
     #=====================================================================#
     #---------------------------------------------------------------------#
     # Lower left wall                                                     #
     #---------------------------------------------------------------------#
-    Lu[1][1]    = nu*(u[1][2]-2.*u[1][1]+ul[1])/dx2 
-    Lu[1][1]    += nu*(u[2][1]-3.*u[1][1]+2.*ub[1])/dy2     
+    LU[1][1]    = NU*(U[1][2]-2.*U[1][1]+Ul[1])/dx2
+    LU[1][1]    += NU*(U[2][1]-3.*U[1][1]+2.*Ub[1])/dy2
     #---------------------------------------------------------------------#
     # Bottom wall                                                         #
     #---------------------------------------------------------------------#
-    for i in range(2, M-1):
-        Lu[1][i]    = nu*(u[1][i+1]-2.*u[1][i]+u[1][i-1])/dx2
-        Lu[1][i]    += nu*(u[2][i]-3.*u[1][i]+2.*ub[i])/dy2
+    for I in range(2, Min-1):
+        LU[1][I]    = NU*(U[1][I+1]-2.*U[1][I]+U[1][I-1])/dx2
+        LU[1][I]    += NU*(U[2][I]-3.*U[1][I]+2.*Ub[I])/dy2
     #---------------------------------------------------------------------#
     # Lower right wall                                                    #
     #---------------------------------------------------------------------#
-    Lu[1][M-1]  = nu*(ur[1]-2.*u[1][M-1]+u[1][M-2])/dx2
-    Lu[1][M-1]  += nu*(u[2][M-1]-3.*u[1][M-1]+2.*ub[M-1])/dy2
+    LU[1][Min-1]  = NU*(Ur[1]-2.*U[1][Min-1]+U[1][Min-2])/dx2
+    LU[1][Min-1]  += NU*(U[2][Min-1]-3.*U[1][Min-1]+2.*Ub[Min-1])/dy2
     #---------------------------------------------------------------------#
     # Interior domain                                                     #
     #---------------------------------------------------------------------#
-    for j in range(2, N):
+    for J in range(2, Nin):
         #-----------------------------------------------------------------#
         # Left wall                                                       #
         #-----------------------------------------------------------------#
-        Lu[j][1]    = nu*(u[j][2]-2.*u[j][1]+ul[j])/dx2
-        Lu[j][1]    += nu*(u[j+1][1]-2.*u[j][1]+u[j-1][1])/dy2
+        LU[J][1]    = NU*(U[J][2]-2.*U[J][1]+Ul[J])/dx2
+        LU[J][1]    += NU*(U[J+1][1]-2.*U[J][1]+U[J-1][1])/dy2
         #-----------------------------------------------------------------#
         # Interior                                                        #
         #-----------------------------------------------------------------#
-        for i in range(2, M-1):
-            Lu[j][i]    = nu*(u[j][i+1]-2.*u[j][i]+u[j][i-1])/dx2
-            Lu[j][i]    += nu*(u[j+1][i]-2.*u[j][i]+u[j-1][i])/dy2
+        for I in range(2, Min-1):
+            LU[J][I]    = NU*(U[J][I+1]-2.*U[J][I]+U[J][I-1])/dx2
+            LU[J][I]    += NU*(U[J+1][I]-2.*U[J][I]+U[J-1][I])/dy2
         #-----------------------------------------------------------------#
         # Right wall                                                      #
         #-----------------------------------------------------------------#
-        Lu[j][M-1]  = nu*(ur[j]-2.*u[j][M-1]+u[j][M-2])/dx2
-        Lu[j][M-1]  += nu*(u[j+1][M-1]-2.*u[j][M-1]+u[j-1][M-1])/dy2
+        LU[J][Min-1]  = NU*(Ur[J]-2.*U[J][Min-1]+U[J][Min-2])/dx2
+        LU[J][Min-1]  += NU*(U[J+1][Min-1]-2.*U[J][Min-1]+U[J-1][Min-1])/dy2
     #---------------------------------------------------------------------#
     # Upper left wall                                                     #
     #---------------------------------------------------------------------#
-    Lu[N][1] = nu*(u[N][2]-2.*u[N][1]+ul[N])/dx2
-    Lu[N][1] += nu*(2.*ut[1]-3.*u[N][1]+u[N-1][1])/dy2
+    LU[Nin][1] = NU*(U[Nin][2]-2.*U[Nin][1]+Ul[Nin])/dx2
+    LU[Nin][1] += NU*(2.*Ut[1]-3.*U[Nin][1]+U[Nin-1][1])/dy2
     #---------------------------------------------------------------------#
     # Top wall                                                            #
     #---------------------------------------------------------------------#
-    for i in range(2, M-1):
-        Lu[N][i]    = nu*(u[N][i+1]-2.*u[N][i]+u[N][i-1])/dx2
-        Lu[N][i]    += nu*(2.*ut[i]-3.*u[N][i]+u[N-1][i])/dy2
+    for I in range(2, Min-1):
+        LU[Nin][I]    = NU*(U[Nin][I+1]-2.*U[Nin][I]+U[Nin][I-1])/dx2
+        LU[Nin][I]    += NU*(2.*Ut[I]-3.*U[Nin][I]+U[Nin-1][I])/dy2
     #---------------------------------------------------------------------#
     # Upper right wall                                                    #
     #---------------------------------------------------------------------#
-    Lu[N][M-1]  = nu*(ur[N]-2.*u[N][M-1]+u[N][M-2])/dx2
-    Lu[N][M-1]  += nu*(2.*ut[M-1]-3.*u[N][M-1]+u[N-1][M-1])/dy2
+    LU[Nin][Min-1]  = NU*(Ur[Nin]-2.*U[Nin][Min-1]+U[Nin][Min-2])/dx2
+    LU[Nin][Min-1]  += NU*(2.*Ut[Min-1]-3.*U[Nin][Min-1]+U[Nin-1][Min-1])/dy2
     #=====================================================================#
-    # Linear terms for v-velocity                                         #
+    # Linear terms for V-velocity                                         #
     #=====================================================================#
     #---------------------------------------------------------------------#
     # Lower left                                                          #
     #---------------------------------------------------------------------#
-    Lv[1][1] = nu*(v[1][2]-3.*v[1][1]+2.*vl[1])/dx2
-    Lv[1][1] += nu*(v[2][1]-2.*v[1][1]+vb[1])/dy2
+    LV[1][1] = NU*(V[1][2]-3.*V[1][1]+2.*Vl[1])/dx2
+    LV[1][1] += NU*(V[2][1]-2.*V[1][1]+Vb[1])/dy2
     #---------------------------------------------------------------------#
     # Bottom wall                                                         #
     #---------------------------------------------------------------------#
-    for i in range(2, M):
-        Lv[1][i] = nu*(v[1][i+1]-2.*v[1][i]+v[1][i-1])/dx2
-        Lv[1][i] += nu*(v[2][i]-2.*v[1][i]+vb[i])/dy2
+    for I in range(2, Min):
+        LV[1][I] = NU*(V[1][I+1]-2.*V[1][I]+V[1][I-1])/dx2
+        LV[1][I] += NU*(V[2][I]-2.*V[1][I]+Vb[I])/dy2
     #---------------------------------------------------------------------#
     # Lower right                                                         #
     #---------------------------------------------------------------------#
-    Lv[1][M] = nu*(2.0*vr[1]-3.*v[1][M]+v[1][M-1])/dx2
-    Lv[1][M] += nu*(v[2][M]-2.*v[1][M]+vb[M])/dy2
+    LV[1][Min] = NU*(2.0*Vr[1]-3.*V[1][Min]+V[1][Min-1])/dx2
+    LV[1][Min] += NU*(V[2][Min]-2.*V[1][Min]+Vb[Min])/dy2
     #---------------------------------------------------------------------#
     # Interior points                                                     #
     #---------------------------------------------------------------------#
-    for j in range(2, N-1):
+    for J in range(2, Nin-1):
         #-----------------------------------------------------------------#
         # Left wall                                                       #
         #-----------------------------------------------------------------#
-        Lv[j][1] = nu*(v[j][2]-3.*v[j][1]+2.*vl[j])/dx2
-        Lv[j][1] += nu*(v[j+1][1]-2.*v[j][1]+v[j-1][1])/dy2
+        LV[J][1] = NU*(V[J][2]-3.*V[J][1]+2.*Vl[J])/dx2
+        LV[J][1] += NU*(V[J+1][1]-2.*V[J][1]+V[J-1][1])/dy2
         #-----------------------------------------------------------------#
         # interior points                                                 #
         #-----------------------------------------------------------------#
-        for i in range(2, M):
-            Lv[j][i] = nu*(v[j][i+1]-2.*v[j][i]+v[j][i-1])/dx2
-            Lv[j][i] += nu*(v[j+1][i]-2.*v[j][i]+v[j-1][i])/dy2
+        for I in range(2, Min):
+            LV[J][I] = NU*(V[J][I+1]-2.*V[J][I]+V[J][I-1])/dx2
+            LV[J][I] += NU*(V[J+1][I]-2.*V[J][I]+V[J-1][I])/dy2
         #-----------------------------------------------------------------#
         # Right wall                                                      #
         #-----------------------------------------------------------------#
-        Lv[j][M] = nu*(2.*vr[j]-3.*v[j][M]+v[j][M-1])/dx2
-        Lv[j][M] += nu*(v[j+1][M]-2.*v[j][M]+v[j-1][M])/dy2
+        LV[J][Min] = NU*(2.*Vr[J]-3.*V[J][Min]+V[J][Min-1])/dx2
+        LV[J][Min] += NU*(V[J+1][Min]-2.*V[J][Min]+V[J-1][Min])/dy2
     #---------------------------------------------------------------------#
     # Upper left wall                                                     #
     #---------------------------------------------------------------------#
-    Lv[N-1][1] = nu*(v[N-1][2]-3.*v[N-1][1]+2.*vl[N-1])/dx2
-    Lv[N-1][1] += nu*(vt[1]-2.*v[N-1][1]+v[N-2][1])/dy2
+    LV[Nin-1][1] = NU*(V[Nin-1][2]-3.*V[Nin-1][1]+2.*Vl[Nin-1])/dx2
+    LV[Nin-1][1] += NU*(Vt[1]-2.*V[Nin-1][1]+V[Nin-2][1])/dy2
     #---------------------------------------------------------------------#
     # Top wall                                                            #
     #---------------------------------------------------------------------#
-    for i in range(2, M):
-        Lv[N-1][i] = nu*(v[N-1][i+1]-2.*v[N-1][i]+v[N-1][i-1])/dx2
-        Lv[N-1][i] += nu*(vt[i]-2.*v[N-1][i]+v[N-2][i])/dy2
+    for I in range(2, Min):
+        LV[Nin-1][I] = NU*(V[Nin-1][I+1]-2.*V[Nin-1][I]+V[Nin-1][I-1])/dx2
+        LV[Nin-1][I] += NU*(Vt[I]-2.*V[Nin-1][I]+V[Nin-2][I])/dy2
     #---------------------------------------------------------------------#
     # Upper right wall                                                    #
     #---------------------------------------------------------------------#
-    Lv[N-1][M] = nu*(2.*vr[N-1]-3.*v[N-1][M]+v[N-1][M-1])/dx2
-    Lv[N-1][M] += nu*(vt[M]-2.*v[N-1][M]+v[N-2][M])/dy2
+    LV[Nin-1][Min] = NU*(2.*Vr[Nin-1]-3.*V[Nin-1][Min]+V[Nin-1][Min-1])/dx2
+    LV[Nin-1][Min] += NU*(Vt[Min]-2.*V[Nin-1][Min]+V[Nin-2][Min])/dy2
     #=====================================================================#
-    # Non-linear terms for u-velocity                                     #
+    # Non-linear terms for U-velocity                                     #
     #=====================================================================#
     #---------------------------------------------------------------------#
     # Looping over domain                                                 #
     #---------------------------------------------------------------------#
-    for j in range(1, N+1):
+    for J in range(1, Nin+1):
         #-----------------------------------------------------------------#
         # Left wall                                                       #
         #-----------------------------------------------------------------#
-        Nx[j][1] = (0.25*(u[j][2]+u[j][1])**2 - 0.25*(u[j][1]+ul[j])**2)/dx
+        NX[J][1] = (0.25*(U[J][2]+U[J][1])**2 - 0.25*(U[J][1]+Ul[J])**2)/DX
         #-----------------------------------------------------------------#
         # Interior domain                                                 #
         #-----------------------------------------------------------------#
-        for i in range(2, M-1):
-            Nx[j][i] = (0.25*(u[j][i+1] + u[j][i])**2 - 0.25*(u[j][i] +\
-                        u[j][i-1])**2)/dx
+        for I in range(2, Min-1):
+            NX[J][I] = (0.25*(U[J][I+1] + U[J][I])**2 - 0.25*(U[J][I] +\
+                        U[J][I-1])**2)/DX
         #-----------------------------------------------------------------#
         # Right wall                                                      #
         #-----------------------------------------------------------------#
-        Nx[j][M-1] = (0.25*(ur[j]+u[j][M-1])**2 - 0.25*(u[j][M-1]+ \
-                        u[j][M-2])**2)/dx
+        NX[J][Min-1] = (0.25*(Ur[J]+U[J][Min-1])**2 - 0.25*(U[J][Min-1]+ \
+                        U[J][Min-2])**2)/DX
     #---------------------------------------------------------------------#
     # Bottom wall                                                         #
     #---------------------------------------------------------------------#
-    for i in range(1, M):
-        Nx[1][i] += (0.25*(u[2][i]+u[1][i])*(v[1][i+1]+v[1][i]) - \
-                    0.5*(ub[i])*(vb[i]+vb[i+1]))/dy
+    for I in range(1, Min):
+        NX[1][I] += (0.25*(U[2][I]+U[1][I])*(V[1][I+1]+V[1][I]) - \
+                    0.5*(Ub[I])*(Vb[I]+Vb[I+1]))/DY
     #---------------------------------------------------------------------#
     # Interior domain                                                     #
     #---------------------------------------------------------------------#
-    for j in range(2, N):
-        for i in range(1, M):
-            Nx[j][i] += (0.25*(u[j+1][i]+u[j][i])*(v[j][i+1]+v[j][i]) -\
-                        0.25*(u[j][i]+u[j-1][i])*(v[j-1][i]+v[j-1][i+1]))/dy
+    for J in range(2, Nin):
+        for I in range(1, Min):
+            NX[J][I] += (0.25*(U[J+1][I]+U[J][I])*(V[J][I+1]+V[J][I]) -\
+                        0.25*(U[J][I]+U[J-1][I])*(V[J-1][I]+V[J-1][I+1]))/DY
     #---------------------------------------------------------------------#
     # Top wall                                                            #
     #---------------------------------------------------------------------#
-    for i in range(1, M):
-        Nx[N][i] += (0.5*(ut[i])*(vt[i+1]+vt[i]) - \
-                    0.25*(u[N][i]+u[N-1][i])*(v[N-1][i]+v[N-1][i+1]))/dy
+    for I in range(1, Min):
+        NX[Nin][I] += (0.5*(Ut[I])*(Vt[I+1]+Vt[I]) - \
+                    0.25*(U[Nin][I]+U[Nin-1][I])*(V[Nin-1][I]+V[Nin-1][I+1]))/DY
     #=====================================================================#
-    # Non-linear terms for v-velocity                                     #
+    # Non-linear terms for V-velocity                                     #
     #=====================================================================#
     #---------------------------------------------------------------------#
     # Left wall                                                           #
     #---------------------------------------------------------------------#
-    for i in range(1, M+1):
-        Ny[1][i] = (0.25*(v[2][i]+v[1][i])**2 - \
-                        0.25*(v[1][i]+vb[i])**2)/dy
+    for I in range(1, Min+1):
+        NY[1][I] = (0.25*(V[2][I]+V[1][I])**2 - \
+                        0.25*(V[1][I]+Vb[I])**2)/DY
     #---------------------------------------------------------------------#
-    # Interior points dv/dy                                               #
+    # Interior points dv/DY                                               #
     #---------------------------------------------------------------------#
-    for j in range(2, N-1):
-        for i in range(1, M+1):
-            Ny[j][i] = (0.25*(v[j+1][i] + v[j][i])**2 - \
-                            0.25*(v[j][i] + v[j-1][i])**2)/dy
+    for J in range(2, Nin-1):
+        for I in range(1, Min+1):
+            NY[J][I] = (0.25*(V[J+1][I] + V[J][I])**2 - \
+                            0.25*(V[J][I] + V[J-1][I])**2)/DY
     #---------------------------------------------------------------------#
-    # Top wall                                                            # 
+    # Top wall                                                            #
     #---------------------------------------------------------------------#
-    for i in range(1, M+1):
-        Ny[N-1][i] = (0.25*(vt[i]+v[N-1][i])**2 - \
-                        0.25*(v[N-1][i]+v[N-2][i])**2)/dy
+    for I in range(1, Min+1):
+        NY[Nin-1][I] = (0.25*(Vt[I]+V[Nin-1][I])**2 - \
+                        0.25*(V[Nin-1][I]+V[Nin-2][I])**2)/DY
     #---------------------------------------------------------------------#
-    # Interior points dv/dx                                               # 
+    # Interior points dv/DX                                               #
     #---------------------------------------------------------------------#
-    for j in range(1, N):
+    for J in range(1, Nin):
         #-----------------------------------------------------------------#
-        # Left domain                                                     # 
+        # Left domain                                                     #
         #-----------------------------------------------------------------#
-        Ny[j][1] += (0.25*(u[j][1]+u[j+1][1])*(v[j][2]+v[j][1]) -\
-                        0.5*(ul[j]+ul[j+1])*(vl[j]))/dx
+        NY[J][1] += (0.25*(U[J][1]+U[J+1][1])*(V[J][2]+V[J][1]) -\
+                        0.5*(Ul[J]+Ul[J+1])*(Vl[J]))/DX
         #-----------------------------------------------------------------#
-        # Interior domain                                                 # 
+        # Interior domain                                                 #
         #-----------------------------------------------------------------#
-        for i in range(2, M):
-            Ny[j][i] += (0.25*(u[j][i]+u[j+1][i])*(v[j][i+1]+v[j][i]) -\
-                        0.25*(u[j][i-1]+u[j+1][i-1])*(v[j][i]+v[j][i-1]))/dx
+        for I in range(2, Min):
+            NY[J][I] += (0.25*(U[J][I]+U[J+1][I])*(V[J][I+1]+V[J][I]) -\
+                        0.25*(U[J][I-1]+U[J+1][I-1])*(V[J][I]+V[J][I-1]))/DX
         #-----------------------------------------------------------------#
-        # Right wall domain                                               # 
+        # Right wall domain                                               #
         #-----------------------------------------------------------------#
-        Ny[j][M] += (0.5*(ur[j]+ur[j+1])*(vr[j]) - \
-                        0.25*(u[j][M-1]+u[j+1][M-1])*(v[j][M]+v[j][M-1]))/dx
+        NY[J][Min] += (0.5*(Ur[J]+Ur[J+1])*(Vr[J]) - \
+                        0.25*(U[J][Min-1]+U[J+1][Min-1])*(V[J][Min]+V[J][Min-1]))/DX
 
-    return [Lu, Lv, Nx, Ny]
+    return [LU, LV, NX, NY]
 #-------------------------------------------------------------------------#
 # Pressure implementation                                                 #
 #-------------------------------------------------------------------------#
-def calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl,\
-                vr, vb, vt):
-    
+def calcpress(Min, Nin, DX, DY, Maxerror, Ustar, Vstar, Ul, Ur, Vb, Vt):
+
     """ Calculating the pressure; Gauss-Seidel part """
     #=====================================================================#
     # Domain variables                                                    #
@@ -246,81 +243,81 @@ def calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl,\
     gsiter      = 0
     normnew     = 0.
     diffnorm    = 0.
-    normerror   = 2.*maxerror     # normerror is relative error in norm of diagonal
-    rhs         = 0.                         
-    dx2         = dx*dx
-    dy2         = dy*dy
+    normerror   = 2.*Maxerror     # normerror is relative error in norm of diagonal
+    rhs         = 0.
+    dx2         = DX*DX
+    dy2         = DY*DY
     #=====================================================================#
     # Pressure variables                                                  #
     #=====================================================================#
-    P       = np.zeros((N+1,M+1))
-    Pold    = np.zeros((N+1,M+1))
+    Press   = np.zeros((Nin+1,Min+1))
+    Pold    = np.zeros((Nin+1,Min+1))
     #=====================================================================#
     # Gauss-Seidel iteration                                              #
     #=====================================================================#
-    while((normerror > maxerror and gsiter < 5000) or (gsiter < 30)):
+    while((normerror > Maxerror and gsiter < 5000) or (gsiter < 30)):
         #-----------------------------------------------------------------#
         # Norm variables                                                  #
         #-----------------------------------------------------------------#
         normnew     = 0.
-        diffnorm    = 0.        
+        diffnorm    = 0.
         gsiter      += 1
         #-----------------------------------------------------------------#
         # Lower left                                                      #
         #-----------------------------------------------------------------#
-        rhs     = (ustar[1][1]-ul[1])/dx + (vstar[1][1]-vb[1])/dy
-        P[1][1] = 1./(1./dx2+1./dy2)*(P[1][2]/dx2+P[2][1]/dy2-rhs)
+        rhs     = (Ustar[1][1]-Ul[1])/DX + (Vstar[1][1]-Vb[1])/DY
+        Press[1][1] = 1./(1./dx2+1./dy2)*(Press[1][2]/dx2+Press[2][1]/dy2-rhs)
         #-----------------------------------------------------------------#
         # lower                                                           #
         #-----------------------------------------------------------------#
-        for i in range(2, M):
-            rhs     = (ustar[1][i]-ustar[1][i-1])/dx + (vstar[1][i]-vb[i])/dy
-            P[1][i] = 1./(2./dx2+1./dy2)*((P[1][i+1]+P[1][i-1])/dx2+P[2][i]/dy2-rhs)
+        for I in range(2, Min):
+            rhs     = (Ustar[1][I]-Ustar[1][I-1])/DX + (Vstar[1][I]-Vb[I])/DY
+            Press[1][I] = 1./(2./dx2+1./dy2)*((Press[1][I+1]+Press[1][I-1])/dx2+Press[2][I]/dy2-rhs)
         #-----------------------------------------------------------------#
         # lower right                                                     #
         #-----------------------------------------------------------------#
-        rhs     = (ur[1]-ustar[1][M-1])/dx + (vstar[1][M]-vb[M])/dy
-        P[1][M] = 1./(1./dx2+1./dy2)*(P[1][M-1]/dx2+P[2][M]/dy2-rhs)
+        rhs     = (Ur[1]-Ustar[1][Min-1])/DX + (Vstar[1][Min]-Vb[Min])/DY
+        Press[1][Min] = 1./(1./dx2+1./dy2)*(Press[1][Min-1]/dx2+Press[2][Min]/dy2-rhs)
         #-----------------------------------------------------------------#
         # left                                                            #
         #-----------------------------------------------------------------#
-        for j in range(2, N):
-            rhs     = (ustar[j][1]-ul[j])/dx + (vstar[j][1]-vstar[j-1][1])/dy
-            P[j][1] = 1./(1./dx2+2./dy2)*(P[j][2]/dx2+(P[j+1][1]+P[j-1][1])/dy2-rhs)
+        for J in range(2, Nin):
+            rhs     = (Ustar[J][1]-Ul[J])/DX + (Vstar[J][1]-Vstar[J-1][1])/DY
+            Press[J][1] = 1./(1./dx2+2./dy2)*(Press[J][2]/dx2+(Press[J+1][1]+Press[J-1][1])/dy2-rhs)
             #-------------------------------------------------------------#
             # away from the boundaries                                    #
             #-------------------------------------------------------------#
-            for i in range(2, M):
-                rhs     = (ustar[j][i]-ustar[j][i-1])/dx + (vstar[j][i]-vstar[j-1][i])/dy
-                P[j][i] = 1./(2./dx2+2./dy2)*((P[j][i+1]+P[j][i-1])/dx2+(P[j+1][i]+P[j-1][i])/dy2-rhs)
+            for I in range(2, Min):
+                rhs     = (Ustar[J][I]-Ustar[J][I-1])/DX + (Vstar[J][I]-Vstar[J-1][I])/DY
+                Press[J][I] = 1./(2./dx2+2./dy2)*((Press[J][I+1]+Press[J][I-1])/dx2+(Press[J+1][I]+Press[J-1][I])/dy2-rhs)
             #-------------------------------------------------------------#
             # right                                                       #
             #-------------------------------------------------------------#
-            rhs     = (ur[j]-ustar[j][M-1])/dx + (vstar[j][M]-vstar[j-1][M])/dy
-            P[j][M] = 1./(1./dx2+2./dy2)*(P[j][M-1]/dx2+(P[j+1][M]+P[j-1][M])/dy2-rhs)
+            rhs     = (Ur[J]-Ustar[J][Min-1])/DX + (Vstar[J][Min]-Vstar[J-1][Min])/DY
+            Press[J][Min] = 1./(1./dx2+2./dy2)*(Press[J][Min-1]/dx2+(Press[J+1][Min]+Press[J-1][Min])/dy2-rhs)
         #-----------------------------------------------------------------#
         # upper left                                                      #
         #-----------------------------------------------------------------#
-        rhs     = (ustar[N][1]-ul[N])/dx + (vt[1]-vstar[N-1][1])/dy
-        P[N][1] = 1./(1./dx2+1./dy2)*(P[N][2]/dx2+P[N-1][1]/dy2-rhs)
+        rhs     = (Ustar[Nin][1]-Ul[Nin])/DX + (Vt[1]-Vstar[Nin-1][1])/DY
+        Press[Nin][1] = 1./(1./dx2+1./dy2)*(Press[Nin][2]/dx2+Press[Nin-1][1]/dy2-rhs)
         #-----------------------------------------------------------------#
         # upper                                                           #
         #-----------------------------------------------------------------#
-        for i in range(2, M):
-            rhs     = (ustar[N][i]-ustar[N][i-1])/dx + (vt[i]-vstar[N-1][i])/dy
-            P[N][i] = 1./(2./dx2+1./dy2)*((P[N][i+1]+P[N][i-1])/dx2+P[N-1][i]/dy2-rhs)
+        for I in range(2, Min):
+            rhs     = (Ustar[Nin][I]-Ustar[Nin][I-1])/DX + (Vt[I]-Vstar[Nin-1][I])/DY
+            Press[Nin][I] = 1./(2./dx2+1./dy2)*((Press[Nin][I+1]+Press[Nin][I-1])/dx2+Press[Nin-1][I]/dy2-rhs)
         #-----------------------------------------------------------------#
         # upper right                                                     #
         #-----------------------------------------------------------------#
-        rhs     = (ur[N]-ustar[N][M-1])/dx + (vt[M]-vstar[N-1][M])/dy
-        P[N][M] = 1./(1./dx2+1./dy2)*(P[N][M-1]/dx2+P[N-1][M]/dy2-rhs)
+        rhs     = (Ur[Nin]-Ustar[Nin][Min-1])/DX + (Vt[Min]-Vstar[Nin-1][Min])/DY
+        Press[Nin][Min] = 1./(1./dx2+1./dy2)*(Press[Nin][Min-1]/dx2+Press[Nin-1][Min]/dy2-rhs)
         #-----------------------------------------------------------------#
         # updating norms                                                  #
         #-----------------------------------------------------------------#
-        for j in range(1,N+1):
-            for i in range(1,M+1):
-                normnew     += P[j][i]**2
-                diffnorm    += (P[j][i]-Pold[j][i])**2
+        for J in range(1,Nin+1):
+            for I in range(1,Min+1):
+                normnew     += Press[J][I]**2
+                diffnorm    += (Press[J][I]-Pold[J][I])**2
         #-----------------------------------------------------------------#
         # new norm                                                        #
         #-----------------------------------------------------------------#
@@ -328,13 +325,14 @@ def calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl,\
         #-----------------------------------------------------------------#
         # storing old pressure                                            #
         #-----------------------------------------------------------------#
-        Pold = np.copy(P)    
+        Pold = np.copy(Press)
     #---------------------------------------------------------------------#
     # Print statement                                                     #
     #---------------------------------------------------------------------#
     print("%16.5e: %5i iterations" % (normerror, gsiter))
+    String = "%16.5e: %5i iterations\n" % (normerror, gsiter)
 
-    return P
+    return Press, String
 #=========================================================================#
 # Main                                                                    #
 #=========================================================================#
@@ -346,12 +344,12 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     # Domain variables                                                    #
     #---------------------------------------------------------------------#
-    M   = 32        # nx
-    N   = 32       # ny
-    lx  = 1.0       # x length 
+    M   = 16        # nx
+    N   = 16        # ny
+    lx  = 1.0       # x length
     ly  = 1.0       # y length
     dx  = lx/M      # x spatial step size
-    dy  = ly/N      # y spatial step size 
+    dy  = ly/N      # y spatial step size
     #---------------------------------------------------------------------#
     # Writing flags                                                       #
     #---------------------------------------------------------------------#
@@ -375,50 +373,179 @@ if __name__ == "__main__":
     ut      = np.zeros((M+1))
     vb      = np.zeros((M+1))
     vt      = np.zeros((M+1))
-    
-    
-    #maxerror = 1.e-12
-    maxerror = 1.e-8
-    
-    diverg = 0.
-    maxdiverg = 0.
-    
-    ## set up BC's, velocity components at boundaries are all set to 0 until now -- lid-driven cavity
-    #for i in range(1,M+1):
-    #    ut[i] = 1.
-    
-    # set up BC's, velocity components at boundaries are all set to 0 until now -- unidirectional flow
+    #---------------------------------------------------------------------#
+    # Setting  the error                                                  #
+    #---------------------------------------------------------------------#
+    maxerror    = 1.e-12
+    diverg      = 0.
+    maxdiverg   = 0.
+    #---------------------------------------------------------------------#
+    # Set up BC's, velocity components at boundaries are all set to 0     #
+    # until now -- lid-driven cavity                                      #
+    #---------------------------------------------------------------------#
+    #---------------------------------------------------------------------#
+    # Setting the u-velocity at the top and bottom walls                  #
+    #---------------------------------------------------------------------#
     for i in range(1,M+1):
         ut[i] = 1.
         ub[i] = 0.0
-    
+    #---------------------------------------------------------------------#
+    # Setting the u-velocity at the left and right walls                  #
+    #---------------------------------------------------------------------#
     for j in range(1,N+1):
         ur[j] = 0.0
         ul[j] = 0.0
-    
-    # initial condition has already been set to 0 everywhere
-    
-    nu = 0.01    # viscosity
-    
-    dt = 0.25*dx*dx/nu/2.
+    #---------------------------------------------------------------------#
+    # transport properties                                                #
+    #---------------------------------------------------------------------#
+    nu      = 0.01                  # viscosity
+    dt      = 0.25*dx*dx/nu/2.      # time step
+    tmax    = 25.0                   # final time
     print(dt)
-    tmax = 2.5                         # final time
-    
-    # file output
-    if write_vel_field: fvelfld = open('vel_field.txt', 'w')
-    if write_terms: fterms = open('terms.txt', 'w')
-    if write_P: fP = open('P.txt', 'w')
-    if write_divergence_field: fdiverg = open('divg_field.txt', 'w')
-    
-    Xgrid,Ygrid = np.meshgrid(np.linspace(dx/2,lx-dx/2,M),np.linspace(dy/2,ly-dy/2,N))
-    
-    t = 0.0
-    # main time stepping loop
+    #---------------------------------------------------------------------#
+    # Opening file output                                                 #
+    #---------------------------------------------------------------------#
+    if write_vel_field:
+        fvelfld     = open('vel_field.txt', 'w')
+    if write_terms:
+        fterms      = open('terms.txt', 'w')
+    if write_P:
+        fP          = open('P.txt', 'w')
+    if write_divergence_field:
+        fdiverg     = open('divg_field.txt', 'w')
+    #---------------------------------------------------------------------#
+    # grid for plotting                                                   #
+    #---------------------------------------------------------------------#
+    [Xgrid,Ygrid]   = np.meshgrid(np.linspace(dx/2,lx-dx/2,M),\
+                                    np.linspace(dy/2,ly-dy/2,N))
+    #---------------------------------------------------------------------#
+    # Main time stepping loop                                             #
+    #---------------------------------------------------------------------#
+    string  = ''
+    t       = 0.0
     for nstep in range(1, int(1.0000001*tmax/dt)+1):
         t += dt
-        [Lu, Lv, Nx, Ny] = ddt_prov(M, N, dx, dy, nu, u, v, ul, ur, ub, ut, vl, vr, vb, vt)
-        
-        
+        #-----------------------------------------------------------------#
+        # Calculating linear and non linear terms                         #
+        #-----------------------------------------------------------------#
+        [Lu, Lv, Nx, Ny]    = ddt_prov(M, N, dx, dy, nu, u, v, ul, ur,\
+                                        ub, ut, vl, vr, vb, vt)
+        #-----------------------------------------------------------------#
+        # Updating u and v star                                           #
+        #-----------------------------------------------------------------#
+        for j in range(1, N+1):
+            for i in range(1, M):
+                ustar[j][i] = u[j][i] + dt*(-Nx[j][i] + Lu[j][i])
+        for j in range(1, N):
+            for i in range(1, M+1):
+                vstar[j][i] = v[j][i] + dt*(-Ny[j][i] + Lv[j][i])
+        #-----------------------------------------------------------------#
+        # Updating pressure                                               #
+        #-----------------------------------------------------------------#
+        [P, press_string]   = calcpress(M, N, dx, dy, maxerror, ustar, \
+                                        vstar, ul, ur, vb, vt)
+        string              += press_string
+        #-----------------------------------------------------------------#
+        # Updating velocity                                               #
+        #-----------------------------------------------------------------#
+        for j in range(1, N+1):
+            for i in range(1, M):
+                u[j][i] = ustar[j][i] - (P[j][i+1]-P[j][i])/dx
+        for j in range(1, N):
+            for i in range(1, M+1):
+                v[j][i] = vstar[j][i] - (P[j+1][i]-P[j][i])/dy
+        #-----------------------------------------------------------------#
+        # Computing cell divergence                                       #
+        #-----------------------------------------------------------------#
+        # Bottom left                                                     #
+        #-----------------------------------------------------------------#
+        diverg      = (u[1][1]-ul[1])/dx + (v[1][1]-vb[1])/dy
+        maxdiverg   = diverg
+        if write_divergence_field:
+            fdiverg.write("%16.5e" % diverg)
+        #-----------------------------------------------------------------#
+        # Across the bottom                                               #
+        #-----------------------------------------------------------------#
+        for i in range(2, M):
+            diverg = (u[1][i]-u[1][i-1])/dx + (v[1][i]-vb[i])/dy
+            if abs(diverg)>abs(maxdiverg):
+                maxdiverg = diverg
+            if write_divergence_field:
+                fdiverg.write("%16.5e" % diverg)
+        #-----------------------------------------------------------------#
+        # Bottom right                                                    #
+        #-----------------------------------------------------------------#
+        diverg  = (ur[1]-u[1][M-1])/dx + (v[1][M]-vb[M])/dy
+        if abs(diverg)>abs(maxdiverg):
+            maxdiverg = diverg
+        if write_divergence_field:
+            fdiverg.write("%16.5e" % diverg)
+        if write_divergence_field:
+            fdiverg.write("\n")
+        #-----------------------------------------------------------------#
+        # Middle left                                                     #
+        #-----------------------------------------------------------------#
+        for j in range(2, N):
+            diverg  = (u[j][1]-ul[j])/dx + (v[j][1]-v[j-1][1])/dy
+            if abs(diverg)>abs(maxdiverg):
+                maxdiverg = diverg
+            if write_divergence_field:
+                fdiverg.write("%16.5e" % diverg)
+            #-------------------------------------------------------------#
+            # Across the middle                                           #
+            #-------------------------------------------------------------#
+            for i in range(2, M):
+                diverg  = (u[j][i]-u[j][i-1])/dx + (v[j][i]-v[j-1][i])/dy
+                if abs(diverg)>abs(maxdiverg):
+                    maxdiverg = diverg
+                if write_divergence_field:
+                    fdiverg.write("%16.5e" % diverg)
+            #-------------------------------------------------------------#
+            # Middle right                                                #
+            #-------------------------------------------------------------#
+            diverg  = (ur[j]-u[j][M-1])/dx + (v[j][M]-v[j-1][M])/dy
+            if abs(diverg)>abs(maxdiverg):
+                maxdiverg = diverg
+            if write_divergence_field:
+                fdiverg.write("%16.5e" % diverg)
+            if write_divergence_field:
+                fdiverg.write("\n")
+        #-----------------------------------------------------------------#
+        # Top left                                                        #
+        #-----------------------------------------------------------------#
+        # top left
+        diverg  = (u[N][1]-ul[N])/dx + (vt[1]-v[N-1][1])/dy
+        if abs(diverg)>abs(maxdiverg):
+            maxdiverg = diverg
+        if write_divergence_field:
+            fdiverg.write("%16.5e" % diverg)
+        #-----------------------------------------------------------------#
+        # Across the top                                                  #
+        #-----------------------------------------------------------------#
+        for i in range(2, M):
+            diverg  = (u[N][i]-u[N][i-1])/dx + (vt[i]-v[N-1][i])/dy
+            if abs(diverg)>abs(maxdiverg):
+                maxdiverg = diverg
+            if write_divergence_field:
+                fdiverg.write("%16.5e" % diverg)
+        #-----------------------------------------------------------------#
+        # Top right                                                       #
+        #-----------------------------------------------------------------#
+        diverg = (ur[M]-u[N][M-1])/dx + (vt[M]-v[N-1][M])/dy
+        if abs(diverg)>abs(maxdiverg):
+            maxdiverg = diverg
+        if write_divergence_field:
+            fdiverg.write("%16.5e" % diverg)
+        if write_divergence_field:
+            fdiverg.write("\n")
+        if write_divergence_field:
+            fdiverg.write("\n")
+        #-----------------------------------------------------------------#
+        # Writing output files                                            #
+        #-----------------------------------------------------------------#
+        #-----------------------------------------------------------------#
+        # velocity                                                        #
+        #-----------------------------------------------------------------#
         if write_terms:
             for j in range(1, N+1):
                 for i in range(1, M):
@@ -440,33 +567,18 @@ if __name__ == "__main__":
                     fterms.write("%16.5e" % Ny[j][i])
                 fterms.write("\n")
             fterms.write("\n")
-    
-        for j in range(1, N+1):
-            for i in range(1, M):
-                ustar[j][i] = u[j][i] + dt*(-Nx[j][i] + Lu[j][i])
-    
-        for j in range(1, N):
-            for i in range(1, M+1):
-                vstar[j][i] = v[j][i] + dt*(-Ny[j][i] + Lv[j][i])
-    
-        P = calcpress(M, N, dx, dy, maxerror, ustar, vstar, ul, ur, ub, ut, vl, vr, vb, vt)
-    
+        #-----------------------------------------------------------------#
+        # Pressure                                                        #
+        #-----------------------------------------------------------------#
         if write_P:
             for j in range(1, N+1):
                 for i in range(1, M+1):
                     fP.write("%16.5e" % P[j][i])
                 fP.write("\n")
             fP.write("\n")
-    
-        for j in range(1, N+1):
-            for i in range(1, M):
-                u[j][i] = ustar[j][i] - (P[j][i+1]-P[j][i])/dx
-    
-        for j in range(1, N):
-            for i in range(1, M+1):
-                v[j][i] = vstar[j][i] - (P[j+1][i]-P[j][i])/dy
-    
-        # output cell-centered (interpolated) field values
+        #-----------------------------------------------------------------#
+        # Cell centered velocities                                        #
+        #-----------------------------------------------------------------#
         if write_vel_field or plot_vel_field:
             uinterp = np.zeros((N,M))
             vinterp = np.zeros((N,M))
@@ -474,101 +586,72 @@ if __name__ == "__main__":
                 # left
                 velcent = (ul[j]+u[j][1])/2.
                 uinterp[j-1][0] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
+                if write_vel_field:
+                    fvelfld.write("%16.5e" % velcent)
                 for i in range(2, M):
                     velcent = (u[j][i]+u[j][i-1])/2.
                     uinterp[j-1][i-1] = velcent
-                    if write_vel_field: fvelfld.write("%16.5e" % velcent)
+                    if write_vel_field:
+                        fvelfld.write("%16.5e" % velcent)
                 # right
                 velcent = (ur[j]+u[j][M-1])/2.
                 uinterp[j-1][M-1] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
-                if write_vel_field: fvelfld.write("\n")
-            if write_vel_field: fvelfld.write("\n")
-    
+                if write_vel_field:
+                    fvelfld.write("%16.5e" % velcent)
+                if write_vel_field:
+                    fvelfld.write("\n")
+            if write_vel_field:
+                fvelfld.write("\n")
             for i in range(1, M+1):
-                velcent = (v[1][i]+vb[i])/2.
+                velcent         = (v[1][i]+vb[i])/2.
                 vinterp[0][i-1] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
-            if write_vel_field: fvelfld.write("\n")
+                if write_vel_field:
+                    fvelfld.write("%16.5e" % velcent)
+            if write_vel_field:
+                fvelfld.write("\n")
             for j in range(2, N):
                 for i in range(1, M+1):
                     velcent = (v[j][i]+v[j-1][i])/2.
                     vinterp[j-1][i-1] = velcent
-                    if write_vel_field: fvelfld.write("%16.5e" % velcent)
-                if write_vel_field: fvelfld.write("\n")
+                    if write_vel_field:
+                        fvelfld.write("%16.5e" % velcent)
+                if write_vel_field:
+                    fvelfld.write("\n")
             for i in range(1, M+1):
                 velcent = (v[N-1][i]+vt[i])/2.
                 vinterp[N-1][i-1] = velcent
-                if write_vel_field: fvelfld.write("%16.5e" % velcent)
-            if write_vel_field: fvelfld.write("\n")
-            if write_vel_field: fvelfld.write("\n")
-    
+                if write_vel_field:
+                    fvelfld.write("%16.5e" % velcent)
+            if write_vel_field:
+                fvelfld.write("\n")
+            if write_vel_field:
+                fvelfld.write("\n")
+        #-----------------------------------------------------------------#
+        # Plotting                                                        #
+        #-----------------------------------------------------------------#
         if plot_vel_field:
             fig, ax = plt.subplots()
             q = ax.quiver(Xgrid,Ygrid,uinterp,vinterp)
             ax.set_aspect('equal')
             plt.show()
-    
-        # compute cell divergence
-    
-        # bottom left
-        diverg = (u[1][1]-ul[1])/dx + (v[1][1]-vb[1])/dy
-        maxdiverg = diverg
-        if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        # across the bottom
-        for i in range(2, M):
-            diverg = (u[1][i]-u[1][i-1])/dx + (v[1][i]-vb[i])/dy
-            if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-            if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        # bottom right
-        diverg = (ur[1]-u[1][M-1])/dx + (v[1][M]-vb[M])/dy
-        if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-        if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        if write_divergence_field: fdiverg.write("\n")
-    
-        for j in range(2, N):
-            # middle left
-            diverg = (u[j][1]-ul[j])/dx + (v[j][1]-v[j-1][1])/dy
-            if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-            if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-            # across the middle
-            for i in range(2, M):
-                diverg = (u[j][i]-u[j][i-1])/dx + (v[j][i]-v[j-1][i])/dy
-                if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-                if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-            # middle right
-            diverg = (ur[j]-u[j][M-1])/dx + (v[j][M]-v[j-1][M])/dy
-            if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-            if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-            if write_divergence_field: fdiverg.write("\n")
-    
-        # top left
-        diverg = (u[N][1]-ul[N])/dx + (vt[1]-v[N-1][1])/dy
-        if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-        if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        # across the top
-        for i in range(2, M):
-            diverg = (u[N][i]-u[N][i-1])/dx + (vt[i]-v[N-1][i])/dy
-            if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-            if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        # top right
-        diverg = (ur[M]-u[N][M-1])/dx + (vt[M]-v[N-1][M])/dy
-        if abs(diverg)>abs(maxdiverg): maxdiverg = diverg
-        if write_divergence_field: fdiverg.write("%16.5e" % diverg)
-        if write_divergence_field: fdiverg.write("\n")
-        if write_divergence_field: fdiverg.write("\n")
-    
-        print("%5i/%5i | Maximum velocity divergence: %16.5e" % (nstep, int(1.0000001*tmax/dt), maxdiverg))
-    
-        if nstep ==6:
-            print(t)
-            for j in range(0, N+1):
-                for i in range(0,M+1):
-                    print('%i %i %.5f'  %(j , i, P[j][i]))
-            #sys.exit(0)
-    if write_vel_field: fvelfld.close()
-    if write_terms: fterms.close()
-    if write_P: fP.close()
-    if write_divergence_field: fdiverg.close()
-    
+        print("%5i/%5i | Maximum velocity divergence: %16.5e"\
+                        % (nstep, int(1.0000001*tmax/dt), maxdiverg))
+        string += "%5i/%5i | Maximum velocity divergence: %16.5e\n"\
+                        % (nstep, int(1.0000001*tmax/dt), maxdiverg)
+    #---------------------------------------------------------------------#
+    # Writing output                                                      #
+    #---------------------------------------------------------------------#
+    f = open('output.out', 'w')
+    f.write(string)
+    f.close()
+    #---------------------------------------------------------------------#
+    # Closing output files                                                #
+    #---------------------------------------------------------------------#
+    if write_vel_field:
+        fvelfld.close()
+    if write_terms:
+        fterms.close()
+    if write_P:
+        fP.close()
+    if write_divergence_field:
+        fdiverg.close()
