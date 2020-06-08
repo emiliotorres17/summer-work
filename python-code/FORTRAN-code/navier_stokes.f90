@@ -3,25 +3,22 @@ program ns_solve
     ! Preamble                                                            !
     !=====================================================================!
     use precision_m
-    implicit none
-    integer, parameter              :: M = 128, N = 128
+    implicit none 
+    integer, parameter              :: M = 256, N = 256
     integer                         :: n_count, n_gs, n_gs_t, i, j
     real(WP)                        :: dx, dy, dt1, dt2, dt
     real(WP)                        :: x, y, t
-    real(WP)                        :: tfinal
     real(WP)                        :: Re, L, nu, Uwall
-    real(WP)                        :: Urx, Ulx, Utx, Ubx
-    real(WP)                        :: Ury, Uly, Uty, Uby
-    real(WP)                        :: conv, conv_crit, conv_gs, conv_gs_limit
+    real(WP)                        :: conv, conv_crit, conv_gs, conv_gs_limit 
     real(WP)                        :: conv_u, conv_v
     real(WP)                        :: rh, rh2, rRe
-    real(WP)                        :: a, b, sf
+    real(WP)                        :: a, b        
     real(WP)                        :: ua, ub, uc, ud, ue, va, vb, vc, vd, ve, vf
     real(WP), dimension(200000)     :: conv_hist_u, conv_hist_v
     real(WP), dimension(M+1, N+2)   :: u, u_star, a_grid, r_u, res_u
     real(WP), dimension(M+2, N+1)   :: v, v_star, b_grid, r_v, res_v
-    real(WP), dimension(M+2, N+2)   :: phi, res_gs, gs_RHS, gs_RHS2
-    real(WP), dimension(M+1, N+1)   :: omega
+    real(WP), dimension(M+2, N+2)   :: phi, res_gs, gs_RHS, gs_RHS2 
+    real(WP), dimension(M+1, N+1)   :: omega 
     !---------------------------------------------------------------------!
     ! Domain variables                                                    !
     !---------------------------------------------------------------------!
@@ -29,17 +26,6 @@ program ns_solve
     L       = 1.0_WP                ! length and height of cavity
     nu      = 0.01_WP               ! kinematic viscosity
     Uwall   = Re*nu/L               ! velocity at top wall
-    !---------------------------------------------------------------------!
-    ! Setting the wall velocities                                         !
-    !---------------------------------------------------------------------!
-    Urx     = 0.0_WP                ! right wall u-velocity               
-    Ulx     = 0.0_WP                ! left wall u-velocity
-    Utx     = 1.0_WP                ! top wall u-velocity
-    Ubx     = -1.0_WP               ! bottom wall u-velocity
-    Ury     = -1.0_WP               ! right wall v-velocity
-    Uly     = 1.0_WP                ! left wall v-velocity
-    Uty     = 0.0_WP                ! top wall v-velocity
-    Uby     = 0.0_WP                ! bottom wall v-velocity
     !---------------------------------------------------------------------!
     ! Steady state convergence criteria                                   !
     !---------------------------------------------------------------------!
@@ -57,17 +43,16 @@ program ns_solve
     !---------------------------------------------------------------------!
     u       = 0.0_WP            ! u-velocity field
     v       = 0.0_WP            ! v-velocity field
-    u_star  = 0.0_WP            ! u-star-velocity field (no pressure)
+    u_star  = 0.0_WP            ! u-star-velocity field (no pressure)             
     v_star  = 0.0_WP            ! v-star-velocity field (no pressure)
     phi     = 0.0_WP            ! Lagrangian multiplier
-    res_gs  = 0.0_WP            ! Guass Seidel residual
+    res_gs  = 0.0_WP            ! Guass Seidel residual          
     gs_RHS  = 0.0_WP            ! right hand side of GS
     gs_RHS2 = 0.0_WP            ! right hand side of GS
     omega   = 0.0_WP            ! vorticity
-    !---------------------------------------------------------------------!
-    ! Time counter variables                                              !
-    !---------------------------------------------------------------------!
-    tfinal  = 30.0_WP           ! final time step
+    !-------------------------------------------------------------------------!
+    ! Time counter variables                                                  !
+    !-------------------------------------------------------------------------!
     n_count = 0                 ! counter
     conv    = 5                 ! initial convergence value
     n_gs_t  = 0                 ! gauss-seidel counter (total number of iterations for all time)
@@ -75,29 +60,28 @@ program ns_solve
     !---------------------------------------------------------------------!
     ! Boundary conditions                                                 !
     !---------------------------------------------------------------------!
-    u(:,N+2)    = 2.0_WP*Utx-u_star(:,N+1)      ! u-star top wall    
-    u(:,1)      = 2.0*Ubx-u_star(:,2)           ! u-star bottom wall 
-    u(1,:)      = Ulx                           ! u-star left wall   
-    u(M+1,:)    = Urx                           ! u-star right wall  
-    v(:,N+1)    = Uty                           ! v-star top wall    
-    v(:,1)      = Uby                           ! v-star bottom wall 
-    v(1,:)      = 2.0_WP*Uly-v_star(2,:)        ! v-star left wall   
-    v(M+2,:)    = 2.0_WP*Ury-v_star(M+1,:)      ! v-star right wall  
+    u(:,N+2)    = 2.0_WP*Uwall-u(:,N+1) ! u-velocity top wall
+    u(:,1)      = -u(:,2)               ! u-velocity bottom wall
+    u(1,:)      = 0.0_WP                ! u-velocity left wall
+    u(M+1,:)    = 0.0_WP                ! u-velocity right wall
+    v(:,N+1)    = 0.0_WP                ! v-velocity top wall
+    v(:,1)      = 0.0_WP                ! v-velocity bottom wall
+    v(1,:)      = -v(2,:)               ! v-velocity left wall
+    v(M+2,:)    = -v(M+1,:)             ! v-velocity right wall
     !=====================================================================!
     ! Time loop                                                           !
     !=====================================================================!
-    do while (t < tfinal)
+    do while (conv > conv_crit)
         !-----------------------------------------------------------------!
         ! time step calculation                                           !
         !-----------------------------------------------------------------!
-        sf      = 0.9_WP                        ! time step safety factor for stability
         a_grid  = u                             ! a value for the grid
         b_grid  = v                             ! b value for the grid
         a       = maxval(abs(a_grid))           ! maximum a value
         b       = maxval(abs(b_grid))           ! maximum b value
-        dt1     = 0.25_WP*dx**(2.0_WP)/nu       ! parabolic time step constraint
+        dt1     = 0.25_WP*dx**2.0/nu            ! parabolic time step constraint
         dt2     = dx/(a+b)                      ! hyperbolic time step constraint
-        dt      = sf*min(dt1, dt2)              ! calculating time step
+        dt      = min(dt1, dt2)                 ! calculating time step
         !-----------------------------------------------------------------!
         ! Checking cell Reynolds number stability                         !
         !-----------------------------------------------------------------!
@@ -137,7 +121,7 @@ program ns_solve
                 !---------------------------------------------------------!
                 u_star(i,j) = u(i,j)+ dt*(&
                                 -((ua**2.0_WP-ub**2.0_WP)*rh &
-                                +(uc*va-ud*vb)*rh) &
+                                +(uc*va-ud*vb)*rh) & 
                                 + rRe*((u(i+1,j)-2*u(i,j) + u(i-1,j))*rh2 &
                                 +(u(i,j+1)-2*u(i,j) + u(i,j-1))*rh2))
             end do
@@ -169,46 +153,47 @@ program ns_solve
         !-----------------------------------------------------------------!
         ! Boundary conditions                                             !
         !-----------------------------------------------------------------!
-        u_star(:,N+2)   = 2.0_WP*Utx-u_star(:,N+1)      ! u-star top wall
-        u_star(:,1)     = 2.0_WP*Ubx-u_star(:,2)        ! u-star bottom wall
-        u_star(1,:)     = Ulx                           ! u-star left wall
-        u_star(M+1,:)   = Urx                           ! u-star right wall
-        v_star(:,N+1)   = Uty                           ! v-star top wall
-        v_star(:,1)     = Uby                           ! v-star bottom wall
-        v_star(1,:)     = 2.0_WP*Uly-v_star(2,:)        ! v-star left wall
-        v_star(M+2,:)   = 2.0*Ury-v_star(M+1,:)         ! v-star right wall
+        u_star(:,N+2)   = 2.0_WP*Uwall-u_star(:,N+1)    ! u-star top wall
+        u_star(:,1)     = -u_star(:,2)                  ! u-star bottom wall
+        u_star(1,:)     = 0.0_WP                        ! u-star left wall
+        u_star(M+1,:)   = 0.0_WP                        ! u-star right wall
+        v_star(:,N+1)   = 0.0_WP                        ! v-star top wall
+        v_star(:,1)     = 0.0_WP                        ! v-star bottom wall
+        v_star(1,:)     = -v_star(2,:)                  ! v-star left wall
+        v_star(M+2,:)   = -v_star(M+1,:)                ! v-star right wall
         !=================================================================!
         ! Step II of Fractional Step Method                               !
         !=================================================================!
         !-----------------------------------------------------------------!
         ! Dynamic GS convergence conditions                               !
         !-----------------------------------------------------------------!
-        conv_gs         = 1                     ! resetting the GS convergence
-        conv_gs_limit   = (10.0_WP)**(-9.0_WP)
-        !print *, conv
-        !if  (conv*(10.0_WP)**(-2.0_WP) >= (10.0_WP)**(-3.0_WP)) then
-        !    conv_gs_limit = 10.0_WP**(-12.0_WP)      ! convergence criteria for early in time
-        !elseif (conv*10.0_WP**(-2.0_WP) <= 10.0_WP**(-7.0_WP)) then
-        !    conv_gs_limit = 10.0_WP**(-12.0_WP)     ! convergence criteria near steady state
-        !end if
+        conv_gs = 1                    ! resetting the GS convergence
+        print *, conv
+        if  (conv*(10.0_WP)**(-2.0_WP) >= (10.0_WP)**(-3.0_WP)) then 
+            conv_gs_limit = 10.0_WP**(-3.0_WP)      ! convergence criteria for early in time
+            print *, 'here'
+        elseif (conv*10.0_WP**(-2.0_WP) <= 10.0_WP**(-7.0_WP)) then
+            conv_gs_limit = 10.0_WP**(-7.0_WP)     ! convergence criteria near steady state
+            print *, 'here 2'
+        end if
         !-----------------------------------------------------------------!
         ! Finding solution to Lagrange multiplier using Gauss-Seidel      !
         ! iterates until Gauss-Seidel convergence criteria is met         !
         !-----------------------------------------------------------------!
-        do j = 2, N+1       ! pre-calculate RHS of GS and residual equations
+        do j = 2, N+1       ! pre-calculate RHS of GS and residual equations 
             do i = 2, M+1
                 gs_RHS(i,j) = 0.25_WP*(dx/dt)*(u_star(i,j)-u_star(i-1,j)+&
                                 v_star(i,j)-v_star(i,j-1))
                 gs_RHS2(i,j) = (1.0_WP/dt)*(((u_star(i,j)-u_star(i-1,j))*rh)+&
                                 ((v_star(i,j)-v_star(i,j-1))*rh))
             end do
-        end do
+        end do                 
         !-----------------------------------------------------------------!
         ! GS iterations                                                   !
         !-----------------------------------------------------------------!
-        do while (conv_gs > conv_gs_limit .and. n_gs < 100000)
-            n_gs    = n_gs+1                ! GS iteration counter
-            n_gs_t  = n_gs_t+1              ! GS iteration counter (total)
+        do while (conv_gs > conv_gs_limit)
+            n_gs = n_gs+1                      ! GS iteration counter
+            n_gs_t = n_gs_t+1                  ! GS iteration counter (total)
             do j = 2, N+1
                 do i = 2,M+1
                     phi(i,j) = 0.25_WP*(phi(i-1,j)+phi(i+1,j)+phi(i,j-1) &
@@ -221,7 +206,7 @@ program ns_solve
             phi(:,1)    = phi(:,2)             ! phi bottom wall
             phi(:,N+2)  = phi(:,N+1)           ! phi top wall
             phi(1,:)    = phi(2,:)             ! phi left wall
-            phi(M+2,:)  = phi(M+1,:)           ! phi right wall
+            phi(M+2,:)  = phi(M+1,:)           ! phi right wall  
             !-------------------------------------------------------------!
             ! Check convergence of Lagrange multiplier                    !
             !-------------------------------------------------------------!
@@ -233,9 +218,7 @@ program ns_solve
                 end do
             end do
             conv_gs = maxval(abs(res_gs))           ! check convergence
-            if (n_gs > 100000) then
-                print *, 'GS did not converge after 100k iterations'
-            end if 
+            !print *, n_gs, conv_gs, conv_gs_limit
         end do
         !=================================================================!
         ! Step III of Fractional Step Method                              !
@@ -259,14 +242,14 @@ program ns_solve
         !-----------------------------------------------------------------!
         ! Update velocities BCs                                           !
         !-----------------------------------------------------------------!
-        u(:,N+2)    = 2.0_WP*Utx-u(:,N+1)           ! u top wall    
-        u(:,1)      = 2.0_WP*Ubx-u(:,2)             ! u bottom wall 
-        u(1,:)      = Ulx                           ! u left wall   
-        u(M+1,:)    = Urx                           ! u right wall  
-        v(:,N+1)    = Uty                           ! v top wall    
-        v(:,1)      = Uby                           ! v bottom wall 
-        v(1,:)      = 2.0_WP*Uly-v(2,:)             ! v left wall   
-        v(M+2,:)    = 2.0_WP*Ury-v(M+1,:)           ! v right wall  
+        u(:,N+2)    = 2*Uwall-u(:,N+1) ! u-velocity top wall
+        u(:,1)      = -u(:,2)          ! u-velocity bottom wall
+        u(1,:)      = 0                ! u-velocity left wall
+        u(M+1,:)    = 0                ! u-velocity right wall
+        v(:,N+1)    = 0                ! v-velocity top wall
+        v(:,1)      = 0                ! v-velocity bottom wall
+        v(1,:)      = -v(2,:)          ! v-velocity left wall
+        v(M+2,:)    = -v(M+1,:)        ! v-velocity right wall
         !-----------------------------------------------------------------!
         ! Checking the velocity convergence                               !
         !-----------------------------------------------------------------!
@@ -283,13 +266,12 @@ program ns_solve
         !-----------------------------------------------------------------!
         ! Time step print statement                                       !
         !-----------------------------------------------------------------!
-        print "(4X, A, ES10.3, A, ES10.3)", &
+        print "(4X, A, ES10.3, A, ES10.3)", &    
                     'Convergence of u = ', conv_u,&
                     ' Convergence of v = ', conv_v
-        print "(4X,A, ES10.3, /, 4X, A, I8, /, 4X,  A, ES10.3, /, 4X, A, ES10.3)",&
-                'Simulation time ---> ', t, &
-                'Iteration --->', n_count, 'GS Iterations -->', real(n_gs), &
-                'Total GS Iterations --->', real(n_gs_t)
+        print "(4X, A, I8, /, 4X,  A, I8, /, 4X, A, I8)",&
+                'Iteration', n_count, 'GS Iterations', n_gs, &
+                'Total GS Iterations', n_gs_t
     end do
     !---------------------------------------------------------------------!
     ! Calculating vorticity                                               !
@@ -323,5 +305,5 @@ program ns_solve
         write(1,*) ( v(i,j), j=1,N+1 )
     end do
     close(unit=1)
-
+        
 end program ns_solve
