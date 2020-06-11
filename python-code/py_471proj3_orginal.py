@@ -14,6 +14,7 @@ __author__    = "Jon Baltzer"
 #-------------------------------------------------------------------------#
 # Python packages                                                         #
 #-------------------------------------------------------------------------#
+import os
 from subprocess import call
 import matplotlib.pyplot as plt
 import numpy as np
@@ -304,8 +305,10 @@ def calcpress(Min, Nin, DX, DY, Maxerror, Ustar, Vstar, Ul, Ur, Vb, Vt):
         # upper                                                           #
         #-----------------------------------------------------------------#
         for I in range(2, Min):
-            rhs     = (Ustar[Nin][I]-Ustar[Nin][I-1])/DX + (Vt[I]-Vstar[Nin-1][I])/DY
-            Press[Nin][I] = 1./(2./dx2+1./dy2)*((Press[Nin][I+1]+Press[Nin][I-1])/dx2+Press[Nin-1][I]/dy2-rhs)
+            rhs         = (Ustar[Nin][I]-Ustar[Nin][I-1])/DX +\
+                            (Vt[I]-Vstar[Nin-1][I])/DY
+            Press[Nin][I] = 1./(2./dx2+1./dy2)*((Press[Nin][I+1]+\
+                            Press[Nin][I-1])/dx2+Press[Nin-1][I]/dy2-rhs)
         #-----------------------------------------------------------------#
         # upper right                                                     #
         #-----------------------------------------------------------------#
@@ -351,11 +354,19 @@ if __name__ == "__main__":
     dx  = lx/M      # x spatial step size
     dy  = ly/N      # y spatial step size
     #---------------------------------------------------------------------#
+    # Path variables                                                      #
+    #---------------------------------------------------------------------#
+    sep         = os.sep
+    pwd         = os.getcwd()
+    data_path   = pwd + "%cpython-data%c"               %(sep, sep)
+    if os.path.exists(data_path) is False:
+        os.mkdir(data_path)
+    #---------------------------------------------------------------------#
     # Writing flags                                                       #
     #---------------------------------------------------------------------#
     write_vel_field             = True
-    write_terms                 = False
-    write_P                     = False
+    write_terms                 = True
+    write_P                     = True
     write_divergence_field      = True
     plot_vel_field              = False
     #---------------------------------------------------------------------#
@@ -400,19 +411,31 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     nu      = 0.01                  # viscosity
     dt      = 0.25*dx*dx/nu/2.      # time step
-    tmax    = 25.0                   # final time
+    tmax    = 1.0                   # final time
     print(dt)
     #---------------------------------------------------------------------#
     # Opening file output                                                 #
     #---------------------------------------------------------------------#
     if write_vel_field:
-        fvelfld     = open('vel_field.txt', 'w')
+        u_field     = open(data_path + 'u-velocity.txt', 'w')
+        v_field     = open(data_path + 'v-velocity.txt', 'w')
+        uout        = ""
+        vout        = ""
     if write_terms:
-        fterms      = open('terms.txt', 'w')
+        Luterms     = open(data_path + 'Lu-terms.txt', 'w')
+        Lvterms     = open(data_path + 'Lv-terms.txt', 'w')
+        Nxterms     = open(data_path + 'Nx-terms.txt', 'w')
+        Nyterms     = open(data_path + 'Ny-terms.txt', 'w')
+        Luout       = ""
+        Lvout       = ""
+        Nxout       = ""
+        Nyout       = ""
     if write_P:
-        fP          = open('P.txt', 'w')
+        fp          = open(data_path + 'P.txt', 'w')
+        pout        = ""
     if write_divergence_field:
-        fdiverg     = open('divg_field.txt', 'w')
+        fdiverg     = open(data_path + 'divergence_field.txt', 'w')
+        divout      = ""
     #---------------------------------------------------------------------#
     # grid for plotting                                                   #
     #---------------------------------------------------------------------#
@@ -462,7 +485,7 @@ if __name__ == "__main__":
         diverg      = (u[1][1]-ul[1])/dx + (v[1][1]-vb[1])/dy
         maxdiverg   = diverg
         if write_divergence_field:
-            fdiverg.write("%16.5e" % diverg)
+            divout  += "%16.5e"      %(diverg)
         #-----------------------------------------------------------------#
         # Across the bottom                                               #
         #-----------------------------------------------------------------#
@@ -471,7 +494,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                fdiverg.write("%16.5e" % diverg)
+                divout  += "%16.5e"      %(diverg)
         #-----------------------------------------------------------------#
         # Bottom right                                                    #
         #-----------------------------------------------------------------#
@@ -479,9 +502,9 @@ if __name__ == "__main__":
         if abs(diverg)>abs(maxdiverg):
             maxdiverg = diverg
         if write_divergence_field:
-            fdiverg.write("%16.5e" % diverg)
+            divout  += "%16.5e"      %(diverg)
         if write_divergence_field:
-            fdiverg.write("\n")
+            divout  += "\n"
         #-----------------------------------------------------------------#
         # Middle left                                                     #
         #-----------------------------------------------------------------#
@@ -490,7 +513,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                fdiverg.write("%16.5e" % diverg)
+                divout  += "%16.5e"      %(diverg)
             #-------------------------------------------------------------#
             # Across the middle                                           #
             #-------------------------------------------------------------#
@@ -499,7 +522,7 @@ if __name__ == "__main__":
                 if abs(diverg)>abs(maxdiverg):
                     maxdiverg = diverg
                 if write_divergence_field:
-                    fdiverg.write("%16.5e" % diverg)
+                    divout  += "%16.5e"      %(diverg)
             #-------------------------------------------------------------#
             # Middle right                                                #
             #-------------------------------------------------------------#
@@ -507,9 +530,9 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                fdiverg.write("%16.5e" % diverg)
+                divout  += "%16.5e"      %(diverg)
             if write_divergence_field:
-                fdiverg.write("\n")
+                divout  += "\n"
         #-----------------------------------------------------------------#
         # Top left                                                        #
         #-----------------------------------------------------------------#
@@ -518,7 +541,7 @@ if __name__ == "__main__":
         if abs(diverg)>abs(maxdiverg):
             maxdiverg = diverg
         if write_divergence_field:
-            fdiverg.write("%16.5e" % diverg)
+            divout  += "%16.5e"                  %(diverg)
         #-----------------------------------------------------------------#
         # Across the top                                                  #
         #-----------------------------------------------------------------#
@@ -527,7 +550,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                fdiverg.write("%16.5e" % diverg)
+                divout  += "%16.5e"                  %(diverg)
         #-----------------------------------------------------------------#
         # Top right                                                       #
         #-----------------------------------------------------------------#
@@ -535,11 +558,11 @@ if __name__ == "__main__":
         if abs(diverg)>abs(maxdiverg):
             maxdiverg = diverg
         if write_divergence_field:
-            fdiverg.write("%16.5e" % diverg)
+            divout  += "%16.5e"                  %(diverg)
         if write_divergence_field:
-            fdiverg.write("\n")
+            divout  += "\n"
         if write_divergence_field:
-            fdiverg.write("\n")
+            divout  += "\n"
         #-----------------------------------------------------------------#
         # Writing output files                                            #
         #-----------------------------------------------------------------#
@@ -549,35 +572,35 @@ if __name__ == "__main__":
         if write_terms:
             for j in range(1, N+1):
                 for i in range(1, M):
-                    fterms.write("%16.5e" % Lu[j][i])
-                fterms.write("\n")
-            fterms.write("\n")
+                    Luout   += "%16.5e"     %(Lu[j][i])
+                Luout   += "\n"
+            Luout   += "\n"
             for j in range(1, N):
                 for i in range(1, M+1):
-                    fterms.write("%16.5e" % Lv[j][i])
-                fterms.write("\n")
-            fterms.write("\n")
+                    Lvout   += "%16.5e"     %(Lv[j][i])
+                Lvout   += "\n"
+            Lvout   += "\n"
             for j in range(1, N+1):
                 for i in range(1, M):
-                    fterms.write("%16.5e" % Nx[j][i])
-                fterms.write("\n")
-            fterms.write("\n")
+                    Nxout   += "%16.5e"     %(Nx[j][i])
+                Nxout   += "\n"
+            Nxout   += "\n"
             for j in range(1, N):
                 for i in range(1, M+1):
-                    fterms.write("%16.5e" % Ny[j][i])
-                fterms.write("\n")
-            fterms.write("\n")
+                    Nyout   += "%16.5e"     %(Ny[j][i])
+                Nyout   += "\n"
+            Nyout   += "\n"
         #-----------------------------------------------------------------#
         # Pressure                                                        #
         #-----------------------------------------------------------------#
         if write_P:
             for j in range(1, N+1):
                 for i in range(1, M+1):
-                    fP.write("%16.5e" % P[j][i])
-                fP.write("\n")
-            fP.write("\n")
+                    pout    += "%16.5e"     %(P[j][i])
+                pout    += "\n"
+            pout    += "\n"
         #-----------------------------------------------------------------#
-        # Cell centered velocities                                        #
+        # Cell centered u-velocity                                        #
         #-----------------------------------------------------------------#
         if write_vel_field or plot_vel_field:
             uinterp = np.zeros((N,M))
@@ -587,45 +610,48 @@ if __name__ == "__main__":
                 velcent = (ul[j]+u[j][1])/2.
                 uinterp[j-1][0] = velcent
                 if write_vel_field:
-                    fvelfld.write("%16.5e" % velcent)
+                    uout    += "%16.5e"  %(velcent)
                 for i in range(2, M):
                     velcent = (u[j][i]+u[j][i-1])/2.
                     uinterp[j-1][i-1] = velcent
                     if write_vel_field:
-                        fvelfld.write("%16.5e" % velcent)
+                        uout    += "%16.5e"     %(velcent)
                 # right
                 velcent = (ur[j]+u[j][M-1])/2.
                 uinterp[j-1][M-1] = velcent
                 if write_vel_field:
-                    fvelfld.write("%16.5e" % velcent)
+                    uout   += "%16.5e"         %(velcent)
                 if write_vel_field:
-                    fvelfld.write("\n")
+                    uout    += "\n"
             if write_vel_field:
-                fvelfld.write("\n")
+                uout    += "\n"
+        #-----------------------------------------------------------------#
+        # Cell centered v-velocity                                        #
+        #-----------------------------------------------------------------#
             for i in range(1, M+1):
                 velcent         = (v[1][i]+vb[i])/2.
                 vinterp[0][i-1] = velcent
                 if write_vel_field:
-                    fvelfld.write("%16.5e" % velcent)
+                    vout    += "%16.5e"     %(velcent)
             if write_vel_field:
-                fvelfld.write("\n")
+                vout    += "\n"
             for j in range(2, N):
                 for i in range(1, M+1):
                     velcent = (v[j][i]+v[j-1][i])/2.
                     vinterp[j-1][i-1] = velcent
                     if write_vel_field:
-                        fvelfld.write("%16.5e" % velcent)
+                        vout    += "%16.5e"     %(velcent)
                 if write_vel_field:
-                    fvelfld.write("\n")
+                    vout    += "\n"
             for i in range(1, M+1):
                 velcent = (v[N-1][i]+vt[i])/2.
                 vinterp[N-1][i-1] = velcent
                 if write_vel_field:
-                    fvelfld.write("%16.5e" % velcent)
+                    vout    += "%16.5e"     %(velcent)
             if write_vel_field:
-                fvelfld.write("\n")
+                vout    += "\n"
             if write_vel_field:
-                fvelfld.write("\n")
+                vout    += "\n"
         #-----------------------------------------------------------------#
         # Plotting                                                        #
         #-----------------------------------------------------------------#
@@ -641,17 +667,29 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     # Writing output                                                      #
     #---------------------------------------------------------------------#
-    f = open('output.out', 'w')
+    f = open(data_path + 'output.out', 'w')
     f.write(string)
     f.close()
     #---------------------------------------------------------------------#
     # Closing output files                                                #
     #---------------------------------------------------------------------#
     if write_vel_field:
-        fvelfld.close()
+        u_field.write(uout)
+        u_field.close()
+        v_field.write(vout)
+        v_field.close()
     if write_terms:
-        fterms.close()
+        Luterms.write(Luout)
+        Luterms.close()
+        Lvterms.write(Lvout)
+        Lvterms.close()
+        Nxterms.write(Nxout)
+        Nxterms.close()
+        Nyterms.write(Nyout)
+        Nyterms.close()
     if write_P:
-        fP.close()
+        fp.write(pout)
+        fp.close()
     if write_divergence_field:
+        fdiverg.write(divout)
         fdiverg.close()
