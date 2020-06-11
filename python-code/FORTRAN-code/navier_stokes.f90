@@ -1,13 +1,13 @@
-program ns_solve
+rogram ns_solve
     !=====================================================================!
     ! Preamble                                                            !
     !=====================================================================!
     use precision_m
     implicit none 
-    integer, parameter              :: M = 256, N = 256
+    integer, parameter              :: M = 32, N = 32
     integer                         :: n_count, n_gs, n_gs_t, i, j
     real(WP)                        :: dx, dy, dt1, dt2, dt
-    real(WP)                        :: x, y, t
+    real(WP)                        :: x, y, t, t_final
     real(WP)                        :: Re, L, nu, Uwall
     real(WP)                        :: conv, conv_crit, conv_gs, conv_gs_limit 
     real(WP)                        :: conv_u, conv_v
@@ -57,6 +57,7 @@ program ns_solve
     conv    = 5                 ! initial convergence value
     n_gs_t  = 0                 ! gauss-seidel counter (total number of iterations for all time)
     t       = 0.0_WP            ! time
+    t_final = 5.0_WP            ! final time
     !---------------------------------------------------------------------!
     ! Boundary conditions                                                 !
     !---------------------------------------------------------------------!
@@ -71,7 +72,7 @@ program ns_solve
     !=====================================================================!
     ! Time loop                                                           !
     !=====================================================================!
-    do while (conv > conv_crit)
+    do while (t < t_final)
         !-----------------------------------------------------------------!
         ! time step calculation                                           !
         !-----------------------------------------------------------------!
@@ -79,7 +80,7 @@ program ns_solve
         b_grid  = v                             ! b value for the grid
         a       = maxval(abs(a_grid))           ! maximum a value
         b       = maxval(abs(b_grid))           ! maximum b value
-        dt1     = 0.25_WP*dx**2.0/nu            ! parabolic time step constraint
+        dt1     = 0.25_WP*(dx)**(2.0_WP)/nu     ! parabolic time step constraint
         dt2     = dx/(a+b)                      ! hyperbolic time step constraint
         dt      = min(dt1, dt2)                 ! calculating time step
         !-----------------------------------------------------------------!
@@ -120,7 +121,7 @@ program ns_solve
                 ! u-star values                                           !
                 !---------------------------------------------------------!
                 u_star(i,j) = u(i,j)+ dt*(&
-                                -((ua**2.0_WP-ub**2.0_WP)*rh &
+                                -(((ua)**(2.0_WP)-(ub)**(2.0_WP))*rh &
                                 +(uc*va-ud*vb)*rh) & 
                                 + rRe*((u(i+1,j)-2*u(i,j) + u(i-1,j))*rh2 &
                                 +(u(i,j+1)-2*u(i,j) + u(i,j-1))*rh2))
@@ -140,6 +141,7 @@ program ns_solve
                 vc = 0.5_WP*(v(i,j+1)+v(i,j))      !v_i,j+1
                 vd = 0.5_WP*(v(i,j)+v(i,j-1))      !v_i,j
                 vf = 0.5_WP*(v(i,j)+v(i-1,j))      !v_i-1/2,j+1/2
+                !print *, ua, ub, uc, ud, ue, va, vb, vc, vd, vf
                 !---------------------------------------------------------!
                 ! Calculating v-star values                               !
                 !---------------------------------------------------------!
@@ -168,12 +170,11 @@ program ns_solve
         ! Dynamic GS convergence conditions                               !
         !-----------------------------------------------------------------!
         conv_gs = 1                    ! resetting the GS convergence
-        print *, conv
         if  (conv*(10.0_WP)**(-2.0_WP) >= (10.0_WP)**(-3.0_WP)) then 
-            conv_gs_limit = 10.0_WP**(-3.0_WP)      ! convergence criteria for early in time
+            conv_gs_limit = 10.0_WP**(-10.0_WP)     ! convergence criteria for early in time
             print *, 'here'
         elseif (conv*10.0_WP**(-2.0_WP) <= 10.0_WP**(-7.0_WP)) then
-            conv_gs_limit = 10.0_WP**(-7.0_WP)     ! convergence criteria near steady state
+            conv_gs_limit = 10.0_WP**(-10.0_WP)     ! convergence criteria near steady state
             print *, 'here 2'
         end if
         !-----------------------------------------------------------------!
@@ -269,9 +270,12 @@ program ns_solve
         print "(4X, A, ES10.3, A, ES10.3)", &    
                     'Convergence of u = ', conv_u,&
                     ' Convergence of v = ', conv_v
-        print "(4X, A, I8, /, 4X,  A, I8, /, 4X, A, I8)",&
-                'Iteration', n_count, 'GS Iterations', n_gs, &
-                'Total GS Iterations', n_gs_t
+        print "(4X, A, ES10.3, /, 4X, A, I8, /, 4X,  A, I8, /, 4X, A, ES10.3, /, 4X, A, I8)",   &
+                'time --> ',                t,              &
+                'Iteration --> ',           n_count,        & 
+                'GS Iterations --> ',       n_gs,           &
+                'GS Convergence --> ',      conv_gs,        & 
+                'Total GS Iterations --> ', n_gs_t
     end do
     !---------------------------------------------------------------------!
     ! Calculating vorticity                                               !
