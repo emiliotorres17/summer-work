@@ -47,7 +47,7 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Time stepping loop                                                  !
     !---------------------------------------------------------------------!
-    do nstep  = 1, tstep_F
+    do nstepear = 1, tstep_F
         t   = t + dt   
         call time_derv(Lu, Lv, Nx, Ny, M, N, dx, dy, nu, u, v, ul, ur, ub, ut, &
                                     vl, vr, vb, vt)
