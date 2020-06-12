@@ -15,19 +15,24 @@ program navier_stokes
     real(WP), dimension(0:N-1, 0:M)                 :: Lv, Ny
     real(WP),dimension(0:N, 0:M)                    :: P
     real(WP)                                        :: maxerror
+    real(WP), dimension(0:N-1,0:M-1)                :: uinterp
+    real(WP)                                        :: velcent 
     integer                                         :: i, j, nstep, tstep_F
     real(WP)                                        :: tmax, t
     integer                                         :: counter
     real(WP)                                        :: max_div
     real(WP)                                        :: div
     !---------------------------------------------------------------------!
-    ! Linear derivative test                                              !
+    ! Preallocating variables                                             !
     !---------------------------------------------------------------------!
     counter     = 1
     u           = 0.0_WP
     v           = 0.0_WP
     ustar       = 0.0_WP
     vstar       = 0.0_WP
+    !---------------------------------------------------------------------!
+    ! Boundary conditions                                                 !
+    !---------------------------------------------------------------------!
     ut          = 1.0_WP
     ub          = 0.0_WP
     ur          = 0.0_WP
@@ -36,18 +41,27 @@ program navier_stokes
     vb          = 0.0_WP
     vr          = 0.0_WP
     vl          = 0.0_WP
+    !---------------------------------------------------------------------!
+    ! Transport properties                                                !
+    !---------------------------------------------------------------------!
     nu          = 0.01_WP
     dx          = 1.0_WP/real(M)
     dy          = 1.0_WP/real(N)
     dt          = 0.25_WP*dx*dy/nu/2.0_WP
-    tmax        = 25.0_WP
+    tmax        = 5.0_WP
     maxerror    = (10.0_WP)**(-12.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
     print *, tstep_F
     !---------------------------------------------------------------------!
+    ! Print variables                                                     !
+    !---------------------------------------------------------------------!
+    open(unit=1, file='FORTRAN-data/output.out')
+    10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, I8, A, I8,&
+                4X, A, ES16.5)
+    !---------------------------------------------------------------------!
     ! Time stepping loop                                                  !
     !---------------------------------------------------------------------!
-    do nstepear = 1, tstep_F
+    do nstep = 1, tstep_F
         t   = t + dt   
         call time_derv(Lu, Lv, Nx, Ny, M, N, dx, dy, nu, u, v, ul, ur, ub, ut, &
                                     vl, vr, vb, vt)
@@ -94,7 +108,6 @@ program navier_stokes
                 nstep, '/', tstep_F, &
                 'time -->', t, &
                 'max velocity -->', max(maxval(u),maxval(v))
-        counter = 0                                                                          
         !-----------------------------------------------------------------!
         ! Divergence print out                                            !
         !-----------------------------------------------------------------!
@@ -104,31 +117,20 @@ program navier_stokes
         !-----------------------------------------------------------------!
         ! Writing output                                                  !
         !-----------------------------------------------------------------!
-        10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES10.3, /, I8, A, I8, 4X, A, f10.6, 4X, A, ES10.3)
-        open(unit=1, file='output.out')
         write(1,  10)&
                 nstep, '/', tstep_F, &
                 'time -->', t, &
                 'max velocity -->', max(maxval(u),maxval(v)), &
                 nstep, '/', tstep_F, &
                 '| Maximum velocity diveregence:', max_div
-            
-    end do
-    close(unit=1)
-    !---------------------------------------------------------------------!
-    ! writing u-velocity                                                  !
-    !---------------------------------------------------------------------!
-    open(unit=1, file='u-velocity.dat')
-    do i = 0, M-1
-        write(1,*) ( u(j,i), j=0,N)
-    end do
-    close(unit=1)
-    !---------------------------------------------------------------------!
-    ! writing u-velocity                                                  !
-    !---------------------------------------------------------------------!
-    open(unit=1, file='v-velocity.dat')
-    do i = 0, M
-        write(1,*) ( v(j,i), j=0,N-1)
+        !-----------------------------------------------------------------!
+        ! Writing u-velocity                                              !
+        !-----------------------------------------------------------------!
+        !-------------------------------------------------------------!
+        ! Cell centered u-velocity                                    !
+        !-------------------------------------------------------------!
+        call u_write(u,M,N,ul,ur,ut,ub)
+        call v_write(v,M,N,vl,vr,vt,vb)
     end do
     close(unit=1)
 end program navier_stokes

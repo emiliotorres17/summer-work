@@ -484,13 +484,91 @@ module ns_lib
             if (abs(diverg)>abs(maxdiverg)) then
                 maxdiverg = diverg
             end if 
-            !!-------------------------------------------------------------!
-            !! Print output                                                !
-            !!-------------------------------------------------------------!
-            !print '(I8, A , I8, A, ES16.5)', &
-            !    nstep, '\/', tstep_F, &
-            !    '| Maximum velocity diveregence:', maxdiverg
-            
+        end subroutine
+        !=================================================================!
+        ! Writing u-velocity                                              !
+        !=================================================================!
+        subroutine u_write(u,M,N,ul,ur,ut,ub)
+            !-------------------------------------------------------------!
+            ! writing u-velocity preamble                                 !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(:), intent(in)              :: ul, ur
+            real(WP), dimension(:), intent(in)              :: ub, ut
+            real(WP), dimension(0:N, 0:M-1), intent(in)     :: u
+            real(WP), dimension(0:N-1,0:M-1)                :: uinterp
+            real(WP)                                        :: velcent 
+            real(WP)                                        :: test 
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Cell centered u-velocity                                    !
+            !-------------------------------------------------------------!
+            open(unit=2, file='FORTRAN-data/u-velocity.dat')
+            11 format(/)
+            12 format(256ES16.5)
+            do j = 1, N
+                ! left
+                velcent         = (ul(j)+u(j,1))/2.
+                uinterp(j-1,0)  = velcent
+                do i  = 2, M-1
+                    velcent             = (u(j,i)+u(j,i-1))/2.
+                    uinterp(j-1,i-1)    = velcent
+                end do
+                ! right
+                velcent             = (ur(j)+u(j,M-1))/2.
+                uinterp(j-1,M-1)    = velcent
+            end do
+            !write(1,11)
+            do i = 0, M-1
+                write(2,12) ( uinterp(j,i), j=0,N-1)
+            end do
+            write(2,11)
+        end subroutine
+        !=================================================================!
+        ! Writing v-velocity                                              !
+        !=================================================================!
+        subroutine v_write(v,M,N,vl,vr,vt,vb)
+            !-------------------------------------------------------------!
+            ! writing u-velocity preamble                                 !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(:), intent(in)              :: vl, vr
+            real(WP), dimension(:), intent(in)              :: vb, vt
+            real(WP), dimension(0:N-1,0:M), intent(in)      :: v
+            real(WP), dimension(0:N-1,0:M-1)                :: vinterp
+            real(WP)                                        :: velcent 
+            real(WP)                                        :: test 
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Print variables                                             !
+            !-------------------------------------------------------------!
+            open(unit=3, file='FORTRAN-data/v-velocity.dat')
+            13 format(/)
+            14 format(256ES16.5)
+            !-------------------------------------------------------------!
+            ! Cell centered u-velocity                                    !
+            !-------------------------------------------------------------!
+            do i = 1, M
+                velcent         = (v(1,i)+vb(i))/2.
+                vinterp(0,i-1)  = velcent
+            end do 
+            do j = 2, N-1
+                do i = 1, M
+                    velcent             = (v(j,i)+v(j-1,i))/2.
+                    vinterp(j-1,i-1)    = velcent
+                end do
+            end do
+            do i = 1, M
+                velcent             = (v(N-1,i)+vt(i))/2.
+                vinterp(N-1,i-1)    = velcent
+            end do
+            !-------------------------------------------------------------!
+            ! Writing solution                                            !
+            !-------------------------------------------------------------!
+            do i = 0, M-1
+                write(3,14) (vinterp(j,i), j=0,N-1)
+            end do
+            write(3,13)
         end subroutine
     
 
