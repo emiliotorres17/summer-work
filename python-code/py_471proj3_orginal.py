@@ -15,6 +15,7 @@ __author__    = "Jon Baltzer"
 # Python packages                                                         #
 #-------------------------------------------------------------------------#
 import os
+import sys
 from subprocess import call
 import matplotlib.pyplot as plt
 import numpy as np
@@ -387,7 +388,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     # Setting  the error                                                  #
     #---------------------------------------------------------------------#
-    maxerror    = 1.e-12
+    maxerror    = 1.e-9
     diverg      = 0.
     maxdiverg   = 0.
     #---------------------------------------------------------------------#
@@ -411,8 +412,11 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     nu      = 0.01                  # viscosity
     dt      = 0.25*dx*dx/nu/2.      # time step
-    tmax    = 30.0                   # final time
-    print(dt)
+    tmax    = 5.0                   # final time
+    print("dt = %.10f"           %(dt))
+    print("dx = %.10f"           %(dx))
+    print("dy = %.10f"           %(dy))
+    sys.exit(0)
     #---------------------------------------------------------------------#
     # Opening file output                                                 #
     #---------------------------------------------------------------------#

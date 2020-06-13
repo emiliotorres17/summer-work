@@ -508,14 +508,14 @@ module ns_lib
             12 format(256ES16.5)
             do j = 1, N
                 ! left
-                velcent         = (ul(j)+u(j,1))/2.
+                velcent         = (ul(j)+u(j,1))/2.0_WP
                 uinterp(j-1,0)  = velcent
                 do i  = 2, M-1
-                    velcent             = (u(j,i)+u(j,i-1))/2.
+                    velcent             = (u(j,i)+u(j,i-1))/2.0_WP
                     uinterp(j-1,i-1)    = velcent
                 end do
                 ! right
-                velcent             = (ur(j)+u(j,M-1))/2.
+                velcent             = (ur(j)+u(j,M-1))/2.0_WP
                 uinterp(j-1,M-1)    = velcent
             end do
             !write(1,11)
@@ -549,17 +549,17 @@ module ns_lib
             ! Cell centered u-velocity                                    !
             !-------------------------------------------------------------!
             do i = 1, M
-                velcent         = (v(1,i)+vb(i))/2.
+                velcent         = (v(1,i)+vb(i))/2.0_WP
                 vinterp(0,i-1)  = velcent
             end do 
             do j = 2, N-1
                 do i = 1, M
-                    velcent             = (v(j,i)+v(j-1,i))/2.
+                    velcent             = (v(j,i)+v(j-1,i))/2.0_WP
                     vinterp(j-1,i-1)    = velcent
                 end do
             end do
             do i = 1, M
-                velcent             = (v(N-1,i)+vt(i))/2.
+                velcent             = (v(N-1,i)+vt(i))/2.0_WP
                 vinterp(N-1,i-1)    = velcent
             end do
             !-------------------------------------------------------------!
@@ -570,6 +570,101 @@ module ns_lib
             end do
             write(3,13)
         end subroutine
-    
+        !=================================================================!
+        ! Writing Lv term                                                 !
+        !=================================================================!
+        subroutine Lv_write(Lv,M,N) 
+            !-------------------------------------------------------------!
+            ! writing Lv preamble                                         !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(0:N-1,0:M), intent(in)      :: Lv
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Print variables                                             !
+            !-------------------------------------------------------------!
+            open(unit=4, file='FORTRAN-data/Lv-term.dat')
+            13 format(/)
+            14 format(256ES16.5)
+            !-------------------------------------------------------------!
+            ! Writing solution                                            !
+            !-------------------------------------------------------------!
+            do i = 0, M
+                write(4,14) (Lv(j,i), j=0,N-1)
+            end do
+            write(4,13)
+        end subroutine
+        !=================================================================!
+        ! Writing Lu term                                                 !
+        !=================================================================!
+        subroutine Lu_write(Lu,M,N) 
+            !-------------------------------------------------------------!
+            ! writing Lu preamble                                         !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(0:N,0:M-1), intent(in)      :: Lu
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Print variables                                             !
+            !-------------------------------------------------------------!
+            open(unit=5, file='FORTRAN-data/Lu-term.dat')
+            13 format(/)
+            14 format(256ES16.5)
+            !-------------------------------------------------------------!
+            ! Writing solution                                            !
+            !-------------------------------------------------------------!
+            do j = 1, N
+                write(5,14) (Lu(j,i), i=1,M-1)
+            end do
+            write(5,13)
+        end subroutine
+        !=================================================================!
+        ! Writing Nx term                                                 !
+        !=================================================================!
+        subroutine Nx_write(Nx,M,N) 
+            !-------------------------------------------------------------!
+            ! writing Lu preamble                                         !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(0:N,0:M-1), intent(in)      :: Nx
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Print variables                                             !
+            !-------------------------------------------------------------!
+            open(unit=100, file='FORTRAN-data/Nx-term.dat')
+            13 format(/)
+            14 format(256ES16.5)
+            !-------------------------------------------------------------!
+            ! Writing solution                                            !
+            !-------------------------------------------------------------!
+            do i = 0, M-1
+                write(100,14) (Nx(j,i), j=0,N)
+            end do
+            write(100,13)
+        end subroutine
+        !=================================================================!
+        ! Writing Ny term                                                 !
+        !=================================================================!
+        subroutine Ny_write(Ny,M,N) 
+            !-------------------------------------------------------------!
+            ! writing Lu preamble                                         !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(0:N-1,0:M), intent(in)      :: Ny
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Print variables                                             !
+            !-------------------------------------------------------------!
+            open(unit=7, file='FORTRAN-data/Ny-term.dat')
+            13 format(/)
+            14 format(256ES16.5)
+            !-------------------------------------------------------------!
+            ! Writing solution                                            !
+            !-------------------------------------------------------------!
+            do i = 0, M
+                write(7,14) (Ny(j,i), j=0,N-1)
+            end do
+            write(7,13)
+        end subroutine
 
 end module ns_lib

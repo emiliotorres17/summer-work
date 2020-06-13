@@ -1,4 +1,4 @@
-rogram ns_solve
+program ns_solve
     !=====================================================================!
     ! Preamble                                                            !
     !=====================================================================!
@@ -288,7 +288,7 @@ rogram ns_solve
     !---------------------------------------------------------------------!
     ! writing vorticity                                                   !
     !---------------------------------------------------------------------!
-    open(unit=1, file='../data/vorticity.dat')
+    open(unit=1, file='data/vorticity.dat')
     do i = 1, M+1
         write(1,*) ( omega(i,j), j=1,N+1 )
     end do
@@ -296,7 +296,7 @@ rogram ns_solve
     !---------------------------------------------------------------------!
     ! writing u-velocity                                                  !
     !---------------------------------------------------------------------!
-    open(unit=1, file='../data/u-velocity.dat')
+    open(unit=1, file='data/u-velocity.dat')
     do i = 1, M+1
         write(1,*) ( u(i,j), j=1,N+2 )
     end do
@@ -304,7 +304,7 @@ rogram ns_solve
     !---------------------------------------------------------------------!
     ! writing u-velocity                                                  !
     !---------------------------------------------------------------------!
-    open(unit=1, file='../data/v-velocity.dat')
+    open(unit=1, file='data/v-velocity.dat')
     do i = 1, M+2
         write(1,*) ( v(i,j), j=1,N+1 )
     end do

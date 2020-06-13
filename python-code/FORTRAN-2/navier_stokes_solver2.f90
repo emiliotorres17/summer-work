@@ -3,7 +3,7 @@ program navier_stokes
     use ns_lib 
     real(WP)                                        :: xs = 0.0_WP, xf = 1.0_WP
     integer, parameter                              :: xlen = 101
-    integer, parameter                              :: M = 16, N = 16
+    integer, parameter                              :: M = 32, N = 32
     real(WP), dimension(1:xlen)                     :: xvec
     real(WP)                                        :: dx, dy, nu
     real(WP), dimension(0:N)                        :: ul, ur, vl, vr
@@ -49,9 +49,10 @@ program navier_stokes
     dy          = 1.0_WP/real(N)
     dt          = 0.25_WP*dx*dy/nu/2.0_WP
     tmax        = 5.0_WP
-    maxerror    = (10.0_WP)**(-12.0_WP)
+    maxerror    = (10.0_WP)**(-9.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
-    print *, tstep_F
+    print '(f16.10,/,f16.10,/,f16.10,/f16.10)', dt,dx,dy,nu
+    stop
     !---------------------------------------------------------------------!
     ! Print variables                                                     !
     !---------------------------------------------------------------------!
@@ -131,6 +132,10 @@ program navier_stokes
         !-------------------------------------------------------------!
         call u_write(u,M,N,ul,ur,ut,ub)
         call v_write(v,M,N,vl,vr,vt,vb)
+        call Lv_write(Lv,M,N) 
+        call Lu_write(Lu,M,N) 
+        call Ny_write(Ny,M,N)
+        call Nx_write(Nx,M,N)
     end do
     close(unit=1)
 end program navier_stokes
