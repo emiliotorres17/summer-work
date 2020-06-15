@@ -143,7 +143,7 @@ module ns_lib
                 ! Left wall                                               !
                 !---------------------------------------------------------!
                 Lv(j,1) = nu*(v(j,2)-3.0_WP*v(j,1)+2.0_WP*vl(j))/dx2
-                Lv(j,1) = Lv(j,i) +  nu*(v(j+1,1)-2.0_WP*v(j,1)+v(j-1,1))/dy2
+                Lv(j,1) = Lv(j,1) +  nu*(v(j+1,1)-2.0_WP*v(j,1)+v(j-1,1))/dy2
                 !---------------------------------------------------------!
                 ! interior points                                         !
                 !---------------------------------------------------------!
@@ -288,11 +288,7 @@ module ns_lib
             real(WP), dimension(0:N-1,0:M), intent(in)      :: vstar
             real(WP)                                        :: dx2, dy2, rhs
             real(WP)                                        :: maxerror
-            real(WP), dimension(0:N, 0:M-1)                 :: Lu
-            real(WP), dimension(0:N, 0:M-1)                 :: Nx
-            real(WP), dimension(0:N-1, 0:M)                 :: Lv
-            real(WP), dimension(0:N-1, 0:M)                 :: Ny
-            integer                                         :: i, j, gsiter
+            integer                                         :: i, j, k, gsiter
             real(WP)                                        :: normnew, diffnorm, normerror
             real(WP), dimension(0:N, 0:M), intent(out)      :: P
             real(WP), dimension(0:N, 0:M)                   :: Pold
@@ -377,8 +373,8 @@ module ns_lib
                 P(N,M)  = 1.0_WP/(1.0_WP/dx2+1.0_WP/dy2)*(P(N,M-1)/dx2+P(N-1,M)/dy2-rhs)
                 do j = 1, N
                     do i = 1,M
-                        normnew     = normnew +  P(j,i)**2.0_WP
-                        diffnorm    = diffnorm + (P(j,i)-Pold(j,i))**2.0_WP
+                        normnew     = normnew +  (P(j,i))**(2.0_WP)
+                        diffnorm    = diffnorm + (P(j,i)-Pold(j,i))**(2.0_WP)
                     end do
                 end do
                 normerror   = diffnorm/normnew
@@ -505,7 +501,7 @@ module ns_lib
             !-------------------------------------------------------------!
             open(unit=2, file='FORTRAN-data/u-velocity.dat')
             11 format(/)
-            12 format(256ES16.5)
+            12 format(32ES25.10)
             do j = 1, N
                 ! left
                 velcent         = (ul(j)+u(j,1))/2.0_WP
@@ -519,8 +515,8 @@ module ns_lib
                 uinterp(j-1,M-1)    = velcent
             end do
             !write(1,11)
-            do i = 0, M-1
-                write(2,12) ( uinterp(j,i), j=0,N-1)
+            do j = 0, N-1
+                write(2,12) ( uinterp(j,i), i=0,M-1)
             end do
             write(2,11)
         end subroutine
@@ -537,14 +533,13 @@ module ns_lib
             real(WP), dimension(0:N-1,0:M), intent(in)      :: v
             real(WP), dimension(0:N-1,0:M-1)                :: vinterp
             real(WP)                                        :: velcent 
-            real(WP)                                        :: test 
             integer                                         :: i,j
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
             open(unit=3, file='FORTRAN-data/v-velocity.dat')
             13 format(/)
-            14 format(256ES16.5)
+            14 format(32ES25.10)
             !-------------------------------------------------------------!
             ! Cell centered u-velocity                                    !
             !-------------------------------------------------------------!
@@ -565,8 +560,8 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
-            do i = 0, M-1
-                write(3,14) (vinterp(j,i), j=0,N-1)
+            do j = 0, N-1
+                write(3,14) (vinterp(j,i), i=0,M-1)
             end do
             write(3,13)
         end subroutine
@@ -585,12 +580,12 @@ module ns_lib
             !-------------------------------------------------------------!
             open(unit=4, file='FORTRAN-data/Lv-term.dat')
             13 format(/)
-            14 format(256ES16.5)
+            14 format(32ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
-            do i = 0, M
-                write(4,14) (Lv(j,i), j=0,N-1)
+            do j = 1, N-1
+                write(4,14) (Lv(j,i), i=1,M)
             end do
             write(4,13)
         end subroutine
@@ -609,7 +604,7 @@ module ns_lib
             !-------------------------------------------------------------!
             open(unit=5, file='FORTRAN-data/Lu-term.dat')
             13 format(/)
-            14 format(256ES16.5)
+            14 format(32ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
@@ -631,16 +626,16 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=100, file='FORTRAN-data/Nx-term.dat')
+            open(unit=120, file='FORTRAN-data/Nx-term.dat')
             13 format(/)
-            14 format(256ES16.5)
+            14 format(32ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
-            do i = 0, M-1
-                write(100,14) (Nx(j,i), j=0,N)
+            do j = 1, N
+                write(120,14) (Nx(j,i), i=1,M-1)
             end do
-            write(100,13)
+            write(120,13)
         end subroutine
         !=================================================================!
         ! Writing Ny term                                                 !
@@ -657,14 +652,38 @@ module ns_lib
             !-------------------------------------------------------------!
             open(unit=7, file='FORTRAN-data/Ny-term.dat')
             13 format(/)
-            14 format(256ES16.5)
+            14 format(32ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
-            do i = 0, M
-                write(7,14) (Ny(j,i), j=0,N-1)
+            do j = 1, N-1
+                write(7,14) (Ny(j,i), i=1,M)
             end do
             write(7,13)
+        end subroutine
+        !=================================================================!
+        ! Pressure writing                                                !
+        !=================================================================!
+        subroutine P_write(press,M,N) 
+            !-------------------------------------------------------------!
+            ! writing Lu preamble                                         !
+            !-------------------------------------------------------------!
+            integer, intent(in)                             :: M ,N
+            real(WP), dimension(0:N,0:M), intent(in)        :: press
+            integer                                         :: i,j
+            !-------------------------------------------------------------!
+            ! Print variables                                             !
+            !-------------------------------------------------------------!
+            open(unit=121, file='FORTRAN-data/P-term.dat')
+            13 format(/)
+            14 format(32ES25.10)
+            !-------------------------------------------------------------!
+            ! Writing solution                                            !
+            !-------------------------------------------------------------!
+            do j = 1, N
+                write(121,14) (press(j,i), i=1,M)
+            end do
+            write(121,13)
         end subroutine
 
 end module ns_lib

@@ -274,7 +274,8 @@ def calcpress(Min, Nin, DX, DY, Maxerror, Ustar, Vstar, Ul, Ur, Vb, Vt):
         #-----------------------------------------------------------------#
         for I in range(2, Min):
             rhs     = (Ustar[1][I]-Ustar[1][I-1])/DX + (Vstar[1][I]-Vb[I])/DY
-            Press[1][I] = 1./(2./dx2+1./dy2)*((Press[1][I+1]+Press[1][I-1])/dx2+Press[2][I]/dy2-rhs)
+            Press[1][I] = 1./(2./dx2+1./dy2)*((Press[1][I+1]+\
+                            Press[1][I-1])/dx2+Press[2][I]/dy2-rhs)
         #-----------------------------------------------------------------#
         # lower right                                                     #
         #-----------------------------------------------------------------#
@@ -333,8 +334,8 @@ def calcpress(Min, Nin, DX, DY, Maxerror, Ustar, Vstar, Ul, Ur, Vb, Vt):
     #---------------------------------------------------------------------#
     # Print statement                                                     #
     #---------------------------------------------------------------------#
-    print("%16.5e: %5i iterations" % (normerror, gsiter))
-    String = "%16.5e: %5i iterations\n" % (normerror, gsiter)
+    print("%16.5E: %5i iterations" % (normerror, gsiter))
+    String = "%16.5E: %5i iterations\n" % (normerror, gsiter)
 
     return Press, String
 #=========================================================================#
@@ -355,13 +356,19 @@ if __name__ == "__main__":
     dx  = lx/M      # x spatial step size
     dy  = ly/N      # y spatial step size
     #---------------------------------------------------------------------#
-    # Path variables                                                      #
+    # Path variables and cleaning out simulation data                     #
     #---------------------------------------------------------------------#
     sep         = os.sep
     pwd         = os.getcwd()
     data_path   = pwd + "%cpython-data%c"               %(sep, sep)
     if os.path.exists(data_path) is False:
         os.mkdir(data_path)
+    else:
+        files_in_directory  = os.listdir(data_path)
+        filtered_files      = [files for files in files_in_directory if files.endswith(".txt")]
+        for file_name in filtered_files:
+            path_to_file = os.path.join(data_path, file_name)
+            os.remove(path_to_file)
     #---------------------------------------------------------------------#
     # Writing flags                                                       #
     #---------------------------------------------------------------------#
@@ -400,13 +407,17 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     for i in range(1,M+1):
         ut[i] = 1.
-        ub[i] = 0.0
+        ub[i] = -1.0
+        vt[i] = 0.0
+        vb[i] = 0.0
     #---------------------------------------------------------------------#
     # Setting the u-velocity at the left and right walls                  #
     #---------------------------------------------------------------------#
     for j in range(1,N+1):
         ur[j] = 0.0
         ul[j] = 0.0
+        vl[j] = 1.0
+        vr[j] = -1.0
     #---------------------------------------------------------------------#
     # transport properties                                                #
     #---------------------------------------------------------------------#
@@ -416,7 +427,6 @@ if __name__ == "__main__":
     print("dt = %.10f"           %(dt))
     print("dx = %.10f"           %(dx))
     print("dy = %.10f"           %(dy))
-    sys.exit(0)
     #---------------------------------------------------------------------#
     # Opening file output                                                 #
     #---------------------------------------------------------------------#
@@ -489,7 +499,7 @@ if __name__ == "__main__":
         diverg      = (u[1][1]-ul[1])/dx + (v[1][1]-vb[1])/dy
         maxdiverg   = diverg
         if write_divergence_field:
-            divout  += "%16.5e"      %(diverg)
+            divout  += "%25.10E"      %(diverg)
         #-----------------------------------------------------------------#
         # Across the bottom                                               #
         #-----------------------------------------------------------------#
@@ -498,7 +508,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                divout  += "%16.5e"      %(diverg)
+                divout  += "%25.10E"      %(diverg)
         #-----------------------------------------------------------------#
         # Bottom right                                                    #
         #-----------------------------------------------------------------#
@@ -506,7 +516,7 @@ if __name__ == "__main__":
         if abs(diverg)>abs(maxdiverg):
             maxdiverg = diverg
         if write_divergence_field:
-            divout  += "%16.5e"      %(diverg)
+            divout  += "%25.10E"      %(diverg)
         if write_divergence_field:
             divout  += "\n"
         #-----------------------------------------------------------------#
@@ -517,7 +527,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                divout  += "%16.5e"      %(diverg)
+                divout  += "%25.10E"      %(diverg)
             #-------------------------------------------------------------#
             # Across the middle                                           #
             #-------------------------------------------------------------#
@@ -526,7 +536,7 @@ if __name__ == "__main__":
                 if abs(diverg)>abs(maxdiverg):
                     maxdiverg = diverg
                 if write_divergence_field:
-                    divout  += "%16.5e"      %(diverg)
+                    divout  += "%25.10E"      %(diverg)
             #-------------------------------------------------------------#
             # Middle right                                                #
             #-------------------------------------------------------------#
@@ -534,7 +544,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                divout  += "%16.5e"      %(diverg)
+                divout  += "%25.10E"      %(diverg)
             if write_divergence_field:
                 divout  += "\n"
         #-----------------------------------------------------------------#
@@ -545,7 +555,7 @@ if __name__ == "__main__":
         if abs(diverg)>abs(maxdiverg):
             maxdiverg = diverg
         if write_divergence_field:
-            divout  += "%16.5e"                  %(diverg)
+            divout  += "%25.10E"                  %(diverg)
         #-----------------------------------------------------------------#
         # Across the top                                                  #
         #-----------------------------------------------------------------#
@@ -554,7 +564,7 @@ if __name__ == "__main__":
             if abs(diverg)>abs(maxdiverg):
                 maxdiverg = diverg
             if write_divergence_field:
-                divout  += "%16.5e"                  %(diverg)
+                divout  += "%25.10E"                  %(diverg)
         #-----------------------------------------------------------------#
         # Top right                                                       #
         #-----------------------------------------------------------------#
@@ -562,7 +572,7 @@ if __name__ == "__main__":
         if abs(diverg)>abs(maxdiverg):
             maxdiverg = diverg
         if write_divergence_field:
-            divout  += "%16.5e"                  %(diverg)
+            divout  += "%25.10E"                  %(diverg)
         if write_divergence_field:
             divout  += "\n"
         if write_divergence_field:
@@ -576,22 +586,22 @@ if __name__ == "__main__":
         if write_terms:
             for j in range(1, N+1):
                 for i in range(1, M):
-                    Luout   += "%16.5e"     %(Lu[j][i])
+                    Luout   += "%25.10E"     %(Lu[j][i])
                 Luout   += "\n"
             Luout   += "\n"
             for j in range(1, N):
                 for i in range(1, M+1):
-                    Lvout   += "%16.5e"     %(Lv[j][i])
+                    Lvout   += "%25.10E"     %(Lv[j][i])
                 Lvout   += "\n"
             Lvout   += "\n"
             for j in range(1, N+1):
                 for i in range(1, M):
-                    Nxout   += "%16.5e"     %(Nx[j][i])
+                    Nxout   += "%25.10E"     %(Nx[j][i])
                 Nxout   += "\n"
             Nxout   += "\n"
             for j in range(1, N):
                 for i in range(1, M+1):
-                    Nyout   += "%16.5e"     %(Ny[j][i])
+                    Nyout   += "%25.10E"     %(Ny[j][i])
                 Nyout   += "\n"
             Nyout   += "\n"
         #-----------------------------------------------------------------#
@@ -600,7 +610,7 @@ if __name__ == "__main__":
         if write_P:
             for j in range(1, N+1):
                 for i in range(1, M+1):
-                    pout    += "%16.5e"     %(P[j][i])
+                    pout    += "%25.10E"     %(P[j][i])
                 pout    += "\n"
             pout    += "\n"
         #-----------------------------------------------------------------#
@@ -611,20 +621,20 @@ if __name__ == "__main__":
             vinterp = np.zeros((N,M))
             for j in range(1, N+1):
                 # left
-                velcent = (ul[j]+u[j][1])/2.
+                velcent = (ul[j]+ustar[j][1])/2.
                 uinterp[j-1][0] = velcent
                 if write_vel_field:
-                    uout    += "%16.5e"  %(velcent)
+                    uout    += "%25.10E"  %(velcent)
                 for i in range(2, M):
-                    velcent = (u[j][i]+u[j][i-1])/2.
+                    velcent = (ustar[j][i]+ustar[j][i-1])/2.
                     uinterp[j-1][i-1] = velcent
                     if write_vel_field:
-                        uout    += "%16.5e"     %(velcent)
+                        uout    += "%25.10E"     %(velcent)
                 # right
-                velcent = (ur[j]+u[j][M-1])/2.
+                velcent = (ur[j]+ustar[j][M-1])/2.
                 uinterp[j-1][M-1] = velcent
                 if write_vel_field:
-                    uout   += "%16.5e"         %(velcent)
+                    uout   += "%25.10E"         %(velcent)
                 if write_vel_field:
                     uout    += "\n"
             if write_vel_field:
@@ -636,7 +646,7 @@ if __name__ == "__main__":
                 velcent         = (v[1][i]+vb[i])/2.
                 vinterp[0][i-1] = velcent
                 if write_vel_field:
-                    vout    += "%16.5e"     %(velcent)
+                    vout    += "%25.10E"     %(velcent)
             if write_vel_field:
                 vout    += "\n"
             for j in range(2, N):
@@ -644,14 +654,14 @@ if __name__ == "__main__":
                     velcent = (v[j][i]+v[j-1][i])/2.
                     vinterp[j-1][i-1] = velcent
                     if write_vel_field:
-                        vout    += "%16.5e"     %(velcent)
+                        vout    += "%25.10E"     %(velcent)
                 if write_vel_field:
                     vout    += "\n"
             for i in range(1, M+1):
                 velcent = (v[N-1][i]+vt[i])/2.
                 vinterp[N-1][i-1] = velcent
                 if write_vel_field:
-                    vout    += "%16.5e"     %(velcent)
+                    vout    += "%25.10E"     %(velcent)
             if write_vel_field:
                 vout    += "\n"
             if write_vel_field:
@@ -664,9 +674,9 @@ if __name__ == "__main__":
             q = ax.quiver(Xgrid,Ygrid,uinterp,vinterp)
             ax.set_aspect('equal')
             plt.show()
-        print("%5i/%5i | Maximum velocity divergence: %16.5e"\
+        print("%5i/%5i | Maximum velocity divergence: %16.5E"\
                         % (nstep, int(1.0000001*tmax/dt), maxdiverg))
-        string += "%5i/%5i | Maximum velocity divergence: %16.5e\n"\
+        string += "%5i/%5i | Maximum velocity divergence: %16.5E\n"\
                         % (nstep, int(1.0000001*tmax/dt), maxdiverg)
     #---------------------------------------------------------------------#
     # Writing output                                                      #

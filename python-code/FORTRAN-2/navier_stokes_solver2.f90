@@ -48,15 +48,23 @@ program navier_stokes
     dx          = 1.0_WP/real(M)
     dy          = 1.0_WP/real(N)
     dt          = 0.25_WP*dx*dy/nu/2.0_WP
-    tmax        = 5.0_WP
+    tmax        = 30.0_WP
     maxerror    = (10.0_WP)**(-9.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
     print '(f16.10,/,f16.10,/,f16.10,/f16.10)', dt,dx,dy,nu
-    stop
     !---------------------------------------------------------------------!
     ! Print variables                                                     !
     !---------------------------------------------------------------------!
     open(unit=1, file='FORTRAN-data/output.out')
+    open(unit=123, file='FORTRAN-data/Lv-temp.dat')
+    open(unit=124, file='FORTRAN-data/Ny-temp.dat')
+    open(unit=125, file='FORTRAN-data/ustar-temp.dat')
+    open(unit=126, file='FORTRAN-data/vstar-temp.dat')
+    open(unit=127, file='FORTRAN-data/press-temp.dat')
+    open(unit=128, file='FORTRAN-data/u-temp.dat')
+    open(unit=129, file='FORTRAN-data/v-temp.dat')
+    13 format(ES25.10)
+    17 format(I8, I8, ES25.10)
     10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, I8, A, I8,&
                 4X, A, ES16.5)
     !---------------------------------------------------------------------!
@@ -66,6 +74,18 @@ program navier_stokes
         t   = t + dt   
         call time_derv(Lu, Lv, Nx, Ny, M, N, dx, dy, nu, u, v, ul, ur, ub, ut, &
                                     vl, vr, vb, vt)
+
+        !do j = 0, N-1
+        !    do i = 0,M
+        !        write(123,17) i, j, Lv(j,i)
+        !    end do
+        !end do
+
+        !do j = 0, N-1
+        !    do i = 0,M
+        !        write(124,13) Ny(j,i)
+        !    end do
+        !end do
         !-----------------------------------------------------------------!
         ! Updating ustar and vstar                                        !
         !-----------------------------------------------------------------!
@@ -74,16 +94,32 @@ program navier_stokes
                 ustar(j,i) = u(j,i) + dt*(-Nx(j,i) + Lu(j,i))
             end do
         end do
+        !do j = 0,N
+        !    do i = 0,M-1
+        !        write(125,13) ustar(j,i)
+        !    end do
+        !end do
+
         do j = 1, N-1
             do i = 1, M
                 vstar(j,i) = v(j,i) + dt*(-Ny(j,i) + Lv(j,i))
             end do
         end do
+        !do j = 0, N-1
+        !    do i = 0, M
+        !        write(126,17) i, j, vstar(j,i)
+        !    end do
+        !end do
         !-----------------------------------------------------------------!
         ! Updating pressure                                               !
         !-----------------------------------------------------------------!
         call calcpress(P, M, N, dx, dy, maxerror, ustar, vstar, ul, &
                                 ur, ub, ut, vl, vr, vb, vt)
+        !do j = 0,N
+        !    do i = 0,M
+        !        write(127, 13) P(j,i)
+        !    end do
+        !end do
         !-----------------------------------------------------------------!
         ! Updating u and v                                                !
         !-----------------------------------------------------------------!
@@ -92,11 +128,21 @@ program navier_stokes
                 u(j,i) = ustar(j,i) - (P(j,i+1)-P(j,i))/dx
             end do
         end do 
+        !do j = 0,N
+        !    do i = 0,M-1
+        !        write(128, 13) u(j,i)
+        !    end do
+        !end do
         do j  = 1, N-1
             do i  = 1, M
                 v(j,i) = vstar(j,i) - (P(j+1,i)-P(j,i))/dy
             end do 
         end do
+        !do j = 0, N-1
+        !    do i = 0, M
+        !        write(129, 13) v(j,i)
+        !    end do
+        !end do
         !-----------------------------------------------------------------!
         ! Calculating velocity divergence                                 !
         !-----------------------------------------------------------------!
@@ -136,6 +182,8 @@ program navier_stokes
         call Lu_write(Lu,M,N) 
         call Ny_write(Ny,M,N)
         call Nx_write(Nx,M,N)
+        call P_write(P,M,N) 
     end do
     close(unit=1)
+    close(unit=129)
 end program navier_stokes
