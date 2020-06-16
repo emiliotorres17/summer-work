@@ -393,6 +393,11 @@ if __name__ == "__main__":
     vb      = np.zeros((M+1))
     vt      = np.zeros((M+1))
     #---------------------------------------------------------------------#
+    # Steady state check variables                                        #
+    #---------------------------------------------------------------------#
+    uold    = np.zeros((N+1,M))
+    vold    = np.zeros((N,M+1))
+    #---------------------------------------------------------------------#
     # Setting  the error                                                  #
     #---------------------------------------------------------------------#
     maxerror    = 1.e-9
@@ -423,7 +428,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     nu      = 0.01                  # viscosity
     dt      = 0.25*dx*dx/nu/2.      # time step
-    tmax    = 5.0                   # final time
+    tmax    = 30.0                  # final time
     print("dt = %.10f"           %(dt))
     print("dx = %.10f"           %(dx))
     print("dy = %.10f"           %(dy))
@@ -450,11 +455,6 @@ if __name__ == "__main__":
     if write_divergence_field:
         fdiverg     = open(data_path + 'divergence_field.txt', 'w')
         divout      = ""
-    #---------------------------------------------------------------------#
-    # grid for plotting                                                   #
-    #---------------------------------------------------------------------#
-    [Xgrid,Ygrid]   = np.meshgrid(np.linspace(dx/2,lx-dx/2,M),\
-                                    np.linspace(dy/2,ly-dy/2,N))
     #---------------------------------------------------------------------#
     # Main time stepping loop                                             #
     #---------------------------------------------------------------------#
@@ -667,17 +667,22 @@ if __name__ == "__main__":
             if write_vel_field:
                 vout    += "\n"
         #-----------------------------------------------------------------#
-        # Plotting                                                        #
+        # Convergence check                                               #
         #-----------------------------------------------------------------#
-        if plot_vel_field:
-            fig, ax = plt.subplots()
-            q = ax.quiver(Xgrid,Ygrid,uinterp,vinterp)
-            ax.set_aspect('equal')
-            plt.show()
-        print("%5i/%5i | Maximum velocity divergence: %16.5E"\
-                        % (nstep, int(1.0000001*tmax/dt), maxdiverg))
-        string += "%5i/%5i | Maximum velocity divergence: %16.5E\n"\
-                        % (nstep, int(1.0000001*tmax/dt), maxdiverg)
+        res_u       = np.amax(abs((u-uold)/dt))
+        res_v       = np.amax(abs((v-vold)/dt))
+        ss_check    = np.amax([res_u, res_v])
+        uold        = np.copy(u)
+        vold        = np.copy(v)
+        #-----------------------------------------------------------------#
+        # Print statement                                                 #
+        #-----------------------------------------------------------------#
+        print("%5i/%5i | Maximum velocity divergence: %16.5e" \
+                                                                            %(nstep, int(1.0000001*tmax/dt), maxdiverg))
+        print('\tsteady state check --> %10.6E\n\n'                         %(ss_check))  
+        string      +=  "%5i/%5i | Maximum velocity divergence: %16.5e" \
+                                                                            %(nstep, int(1.0000001*tmax/dt), maxdiverg)
+        string      += '\tsteady state check --> %10.6E\n\n'                %(ss_check)  
     #---------------------------------------------------------------------#
     # Writing output                                                      #
     #---------------------------------------------------------------------#
