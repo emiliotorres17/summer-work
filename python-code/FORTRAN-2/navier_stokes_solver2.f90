@@ -1,33 +1,36 @@
 program navier_stokes
     use precision_m    
     use ns_lib 
+    implicit none
     real(WP)                                        :: xs = 0.0_WP, xf = 1.0_WP
-    integer, parameter                              :: xlen = 101
-    integer, parameter                              :: M = 32, N = 32
-    real(WP), dimension(1:xlen)                     :: xvec
-    real(WP)                                        :: dx, dy, nu
-    real(WP), dimension(0:N)                        :: ul, ur, vl, vr
-    real(WP), dimension(0:M)                        :: ub, ut, vb, vt
-    real(WP), dimension(0:N, 0:M-1)                 :: u, ustar
-    real(WP), dimension(0:N-1,0:M)                  :: v, vstar
-    real(WP), dimension(0:N, 0:M-1)                 :: Lu
-    real(WP), dimension(0:N, 0:M-1)                 :: Nx
-    real(WP), dimension(0:N-1, 0:M)                 :: Lv, Ny
-    real(WP),dimension(0:N, 0:M)                    :: P
+    integer,    parameter                           :: M = 32, N = 32
+    real(WP)                                        :: dx, dy, dt, nu
+    real(WP),   dimension(0:N)                      :: ul, ur, vl, vr
+    real(WP),   dimension(0:M)                      :: ub, ut, vb, vt
+    real(WP),   dimension(0:N, 0:M-1)               :: u, ustar, uold
+    real(WP),   dimension(0:N-1,0:M)                :: v, vstar, vold
+    real(WP),   dimension(0:N, 0:M-1)               :: Lu
+    real(WP),   dimension(0:N, 0:M-1)               :: Nx
+    real(WP),   dimension(0:N-1, 0:M)               :: Lv, Ny
+    real(WP),   dimension(0:N, 0:M)                 :: P
     real(WP)                                        :: maxerror
-    real(WP), dimension(0:N-1,0:M-1)                :: uinterp
+    real(WP),   dimension(0:N-1,0:M-1)              :: uinterp
     real(WP)                                        :: velcent 
     integer                                         :: i, j, nstep, tstep_F
     real(WP)                                        :: tmax, t
     integer                                         :: counter
     real(WP)                                        :: max_div
     real(WP)                                        :: div
+    real(WP)                                        :: res_u, res_v
+    real(WP)                                        :: ss_check, ss_max
     !---------------------------------------------------------------------!
     ! Preallocating variables                                             !
     !---------------------------------------------------------------------!
     counter     = 1
     u           = 0.0_WP
+    uold        = 0.0_WP
     v           = 0.0_WP
+    vold        = 0.0_WP
     ustar       = 0.0_WP
     vstar       = 0.0_WP
     !---------------------------------------------------------------------!
@@ -48,44 +51,42 @@ program navier_stokes
     dx          = 1.0_WP/real(M)
     dy          = 1.0_WP/real(N)
     dt          = 0.25_WP*dx*dy/nu/2.0_WP
+    !---------------------------------------------------------------------!
+    ! Simulation running criteria                                         !
+    !---------------------------------------------------------------------!
     tmax        = 30.0_WP
-    maxerror    = (10.0_WP)**(-9.0_WP)
+    maxerror    = (10.0_WP)**(-12.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
-    print '(f16.10,/,f16.10,/,f16.10,/f16.10)', dt,dx,dy,nu
+    ss_check    = 1.00
+    ss_max      = 1.0e-12
+    print '(A,/,4X,A,f16.10,/,4X,A,f16.10,/,4X,A,f16.10,&
+            /,4X,A,f16.10,/,4X,A,ES16.5)', &
+            'Simulation running criteria', &    
+            'time step -->', dt, &
+            'x-spatial step size -->', dx, &
+            'y-spatial step size -->', dy, &
+            'steady state criteria -->', ss_check, &
+            'maximum error criteria -->', maxerror
     !---------------------------------------------------------------------!
     ! Print variables                                                     !
     !---------------------------------------------------------------------!
     open(unit=1, file='FORTRAN-data/output.out')
-    open(unit=123, file='FORTRAN-data/Lv-temp.dat')
-    open(unit=124, file='FORTRAN-data/Ny-temp.dat')
-    open(unit=125, file='FORTRAN-data/ustar-temp.dat')
-    open(unit=126, file='FORTRAN-data/vstar-temp.dat')
-    open(unit=127, file='FORTRAN-data/press-temp.dat')
-    open(unit=128, file='FORTRAN-data/u-temp.dat')
-    open(unit=129, file='FORTRAN-data/v-temp.dat')
-    13 format(ES25.10)
-    17 format(I8, I8, ES25.10)
-    10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, I8, A, I8,&
-                4X, A, ES16.5)
+    10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, 4X, A, &
+                ES16.5,/,4X, A, ES16.5)
     !---------------------------------------------------------------------!
     ! Time stepping loop                                                  !
     !---------------------------------------------------------------------!
-    do nstep = 1, tstep_F
-        t   = t + dt   
-        call time_derv(Lu, Lv, Nx, Ny, M, N, dx, dy, nu, u, v, ul, ur, ub, ut, &
-                                    vl, vr, vb, vt)
-
-        !do j = 0, N-1
-        !    do i = 0,M
-        !        write(123,17) i, j, Lv(j,i)
-        !    end do
-        !end do
-
-        !do j = 0, N-1
-        !    do i = 0,M
-        !        write(124,13) Ny(j,i)
-        !    end do
-        !end do
+    do while (nstep < tstep_F .and. ss_check > ss_max) 
+        !-----------------------------------------------------------------!
+        ! Updating time step and simulation time                          !
+        !-----------------------------------------------------------------!
+        nstep   =  nstep + 1
+        t       = t + dt   
+        !-----------------------------------------------------------------!
+        ! Calculating linear and non-linear derivatives                   !
+        !-----------------------------------------------------------------!
+        call time_derv(Lu, Lv, Nx, Ny, M, N, dx, dy, nu, u, v, ul, ur, &
+                            ub, ut, vl, vr, vb, vt)
         !-----------------------------------------------------------------!
         ! Updating ustar and vstar                                        !
         !-----------------------------------------------------------------!
@@ -94,32 +95,16 @@ program navier_stokes
                 ustar(j,i) = u(j,i) + dt*(-Nx(j,i) + Lu(j,i))
             end do
         end do
-        !do j = 0,N
-        !    do i = 0,M-1
-        !        write(125,13) ustar(j,i)
-        !    end do
-        !end do
-
         do j = 1, N-1
             do i = 1, M
                 vstar(j,i) = v(j,i) + dt*(-Ny(j,i) + Lv(j,i))
             end do
         end do
-        !do j = 0, N-1
-        !    do i = 0, M
-        !        write(126,17) i, j, vstar(j,i)
-        !    end do
-        !end do
         !-----------------------------------------------------------------!
         ! Updating pressure                                               !
         !-----------------------------------------------------------------!
         call calcpress(P, M, N, dx, dy, maxerror, ustar, vstar, ul, &
                                 ur, ub, ut, vl, vr, vb, vt)
-        !do j = 0,N
-        !    do i = 0,M
-        !        write(127, 13) P(j,i)
-        !    end do
-        !end do
         !-----------------------------------------------------------------!
         ! Updating u and v                                                !
         !-----------------------------------------------------------------!
@@ -128,26 +113,24 @@ program navier_stokes
                 u(j,i) = ustar(j,i) - (P(j,i+1)-P(j,i))/dx
             end do
         end do 
-        !do j = 0,N
-        !    do i = 0,M-1
-        !        write(128, 13) u(j,i)
-        !    end do
-        !end do
         do j  = 1, N-1
             do i  = 1, M
                 v(j,i) = vstar(j,i) - (P(j+1,i)-P(j,i))/dy
             end do 
         end do
-        !do j = 0, N-1
-        !    do i = 0, M
-        !        write(129, 13) v(j,i)
-        !    end do
-        !end do
         !-----------------------------------------------------------------!
         ! Calculating velocity divergence                                 !
         !-----------------------------------------------------------------!
         call divergence(max_div, div, M, N, u, v, ul, ur, ut, ub, &
                             vl, vr, vt, vb, dx, dy)
+        !-----------------------------------------------------------------!
+        ! Steady state check                                              !
+        !-----------------------------------------------------------------!
+        res_u       = maxval(abs((u-uold)/dt))
+        res_v       = maxval(abs((u-uold)/dt))
+        ss_check    = max(res_u, res_v)
+        uold        = u
+        vold        = v
         !-----------------------------------------------------------------!
         ! Print statement                                                 !
         !-----------------------------------------------------------------!
@@ -158,9 +141,13 @@ program navier_stokes
         !-----------------------------------------------------------------!
         ! Divergence print out                                            !
         !-----------------------------------------------------------------!
-        print '(I8, A , I8, A, ES16.5)', &
-            nstep, '/', tstep_F, &
-            '| Maximum velocity diveregence:', max_div
+        print '(4X, A, ES16.5)', &
+            '| Maximum velocity diveregence -->', max_div
+        !-----------------------------------------------------------------!
+        ! Steady state print out                                          !
+        !-----------------------------------------------------------------!
+        print '(4X, A, ES16.5)', &
+                '| Steady state check -->', ss_check
         !-----------------------------------------------------------------!
         ! Writing output                                                  !
         !-----------------------------------------------------------------!
@@ -168,20 +155,29 @@ program navier_stokes
                 nstep, '/', tstep_F, &
                 'time -->', t, &
                 'max velocity -->', max(maxval(u),maxval(v)), &
-                nstep, '/', tstep_F, &
-                '| Maximum velocity diveregence:', max_div
+                '| Maximum velocity diveregence -->', max_div, &
+                '| Steady state check -->', ss_check
         !-----------------------------------------------------------------!
         ! Writing u-velocity                                              !
         !-----------------------------------------------------------------!
-        !-------------------------------------------------------------!
-        ! Cell centered u-velocity                                    !
-        !-------------------------------------------------------------!
+        !-----------------------------------------------------------------!
+        ! Cell centered u and v velocities                                !
+        !-----------------------------------------------------------------!
         call u_write(u,M,N,ul,ur,ut,ub)
         call v_write(v,M,N,vl,vr,vt,vb)
+        !-----------------------------------------------------------------!
+        ! Linear derivative terms                                         !
+        !-----------------------------------------------------------------!
         call Lv_write(Lv,M,N) 
         call Lu_write(Lu,M,N) 
+        !-----------------------------------------------------------------!
+        ! Non-linear derivatives                                          !
+        !-----------------------------------------------------------------!
         call Ny_write(Ny,M,N)
         call Nx_write(Nx,M,N)
+        !-----------------------------------------------------------------!
+        ! Pressure                                                        !
+        !-----------------------------------------------------------------!
         call P_write(P,M,N) 
     end do
     close(unit=1)

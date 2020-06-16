@@ -31,7 +31,8 @@ N   = 32;                  % number of cells in y
 %-------------------------------------------------------------------------%
 % Steady state convergence criteria                                       %
 %-------------------------------------------------------------------------%
-conv_crit = 10^-7;          % convergence criteria
+conv_crit   = 10^-9;          % convergence criteria
+tfinal      = 30.0;
 %-------------------------------------------------------------------------%
 % Discretization domain                                                   %
 %-------------------------------------------------------------------------%
@@ -75,7 +76,7 @@ v(M+2,:)    = -v(M+1,:);            % v-velocity right wall
 %=========================================================================%
 % Time loop                                                               %
 %=========================================================================%
-while conv > conv_crit
+while t < tfinal
     %---------------------------------------------------------------------%
     % time step calculation                                               %
     %---------------------------------------------------------------------%
@@ -170,9 +171,9 @@ while conv > conv_crit
     %---------------------------------------------------------------------%
     conv_gs = 1;                    % resetting the GS convergence
     if conv*10^-2 >= 10^-3 
-        conv_gs_limit = 10^-3;      % convergence criteria for early in time
+        conv_gs_limit = 10^-9;      % convergence criteria for early in time
     elseif conv*10^-2 <= 10^-7
-        conv_gs_limit = 10^-7;      % convergence criteria near steady state
+        conv_gs_limit = 10^-9;      % convergence criteria near steady state
     end
     %---------------------------------------------------------------------%
     % Finding solution to Lagrange multiplier using Gauss-Seidel          %
@@ -263,6 +264,7 @@ while conv > conv_crit
     %---------------------------------------------------------------------%
     % Time step print statement                                           %
     %---------------------------------------------------------------------%
+    fprintf('time = %10.5e\n', t);
     fprintf('Convergence of u = %6.8e, Convergence of v = %6.8e\n' ...
                 ,conv_u,conv_v);
     fprintf('Iteration %d, %d GS Iterations, %d Total GS Iterations\n' ...

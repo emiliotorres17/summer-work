@@ -4,7 +4,8 @@ module ns_lib
     !=====================================================================!
     use precision_m
     implicit none
-    public :: linspace, time_derv 
+    public :: linspace, time_derv, calcpress, divergence, u_write, &
+                v_write, Lv_write, Lu_write, Ny_write, Nx_write, P_write
     !=====================================================================!
     ! Subroutines                                                         !
     !=====================================================================!
@@ -175,7 +176,7 @@ module ns_lib
             Lv(N-1,M) = nu*(2.0_WP*vr(N-1)-3.0_WP*v(N-1,M)+v(N-1,M-1))/dx2
             Lv(N-1,M) = Lv(N-1,M) + nu*(vt(M)-2.0_WP*v(N-1,M)+v(N-2,M))/dy2
             !=============================================================!
-            ! non-linear terms for u-velocity                             !
+            ! Non-linear terms for u-velocity                             !
             !=============================================================!
             !-------------------------------------------------------------!
             ! looping over domain                                         !
@@ -190,8 +191,8 @@ module ns_lib
                 ! interior domain                                         !
                 !---------------------------------------------------------!
                 do i = 2, M-2
-                    Nx(j,i) = (0.25_WP*(u(j,i+1) + u(j,i))**2.0_WP - 0.25_WP*(u(j,i) +&
-                                u(j,i-1))**2.0_WP)/dx
+                    Nx(j,i) = (0.25_WP*(u(j,i+1) + u(j,i))**2.0_WP - &
+                                0.25_WP*(u(j,i) + u(j,i-1))**2.0_WP)/dx
                 end do
                 !---------------------------------------------------------!
                 ! right wall                                              !
