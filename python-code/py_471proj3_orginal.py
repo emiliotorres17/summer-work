@@ -458,10 +458,15 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------#
     # Main time stepping loop                                             #
     #---------------------------------------------------------------------#
-    string  = ''
-    t       = 0.0
-    for nstep in range(1, int(1.0000001*tmax/dt)+1):
-        t += dt
+    string      = ''
+    t           = 0.0
+    tfinal      = int(1.0000001*tmax/dt)
+    ss_max      = 5.0e-01
+    ss_check    = 2.0*ss_max 
+    nstep       = 0
+    while nstep < tfinal and ss_check > ss_max :
+        nstep   += 1
+        t       += dt
         #-----------------------------------------------------------------#
         # Calculating linear and non linear terms                         #
         #-----------------------------------------------------------------#
