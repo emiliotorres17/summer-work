@@ -20,7 +20,8 @@ tags
 *.txt
 *.dat
 *mp4
-python-code/python-code/data/*
+python-code/python-data/*
+python-code/data/*
 python-code/media/*
 FORTRAN-examples/hw4/advection
 FORTRAN-examples/hw4/fftw_test/*
