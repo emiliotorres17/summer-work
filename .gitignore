@@ -36,3 +36,6 @@ temp.py
 */plot.py
 plot.py
 FORTRAN-examples/tutorial-9/linspace
+python-code/FORTRAN-2/FORTRAN-data/*
+python-code/FORTRAN-2/NS_solve
+FORTRAN-examples/cmake-example/maths
