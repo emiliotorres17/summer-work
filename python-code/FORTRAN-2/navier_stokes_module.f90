@@ -277,19 +277,19 @@ module ns_lib
         ! Pressure implementation                                         !
         !-----------------------------------------------------------------!
         subroutine calcpress(P, M, N, dx, dy, maxerror, ustar, vstar, ul, &
-                            ur, ub, ut, vl, vr, vb, vt)
+                            ur, vb, vt)
             !-------------------------------------------------------------!
             ! Pressure implementation preamble                            !
             !-------------------------------------------------------------!
             integer, intent(in)                             :: M ,N
             real(WP), intent(in)                            :: dx, dy
-            real(WP), dimension(:), intent(in)              :: ul, ur, vl, vr
-            real(WP), dimension(:), intent(in)              :: ub, ut, vb, vt
+            real(WP), dimension(:), intent(in)              :: ul, ur
+            real(WP), dimension(:), intent(in)              :: vb, vt
             real(WP), dimension(0:N, 0:M-1), intent(in)     :: ustar
             real(WP), dimension(0:N-1,0:M), intent(in)      :: vstar
             real(WP)                                        :: dx2, dy2, rhs
             real(WP)                                        :: maxerror
-            integer                                         :: i, j, k, gsiter
+            integer                                         :: i, j, gsiter
             real(WP)                                        :: normnew, diffnorm, normerror
             real(WP), dimension(0:N, 0:M), intent(out)      :: P
             real(WP), dimension(0:N, 0:M)                   :: Pold
@@ -382,25 +382,24 @@ module ns_lib
                 Pold        = P    
             end do
         
-            print "(4X, A ES16.5, 4X, A, I8)", &
+            print "(4X, A, ES16.5, 4X, A, I8)", &
                     'GS convergence -->', normerror, &
                     'GS iterations -->', gsiter
             end subroutine
         !-----------------------------------------------------------------!
         ! Divergence calculation                                          !
         !-----------------------------------------------------------------!
-        subroutine divergence(maxdiverg, diverg, M, N, u, v, ul, ur, ut, ub, &
-                                vl, vr, vt, vb, dx, dy)
+        subroutine divergence(maxdiverg, diverg, M, N, u, v, ul, ur, vt,&
+                                vb, dx, dy)
             !-------------------------------------------------------------!
             ! Divergence calculation preamble                             !
             !-------------------------------------------------------------!
             integer, intent(in)                             :: M ,N
             real(WP), intent(in)                            :: dx, dy
-            real(WP), dimension(:), intent(in)              :: ul, ur, vl, vr
-            real(WP), dimension(:), intent(in)              :: ub, ut, vb, vt
+            real(WP), dimension(:), intent(in)              :: ul, ur
+            real(WP), dimension(:), intent(in)              :: vb, vt
             real(WP), dimension(0:N, 0:M-1), intent(in)     :: u
             real(WP), dimension(0:N-1,0:M), intent(in)      :: v
-            real(WP)                                        :: dx2, dy2, rhs
             real(WP), intent(out)                           :: diverg
             real(WP), intent(out)                           :: maxdiverg
             integer                                         :: i, j
@@ -485,17 +484,15 @@ module ns_lib
         !=================================================================!
         ! Writing u-velocity                                              !
         !=================================================================!
-        subroutine u_write(u,M,N,ul,ur,ut,ub)
+        subroutine u_write(u,M,N,ul,ur)
             !-------------------------------------------------------------!
             ! writing u-velocity preamble                                 !
             !-------------------------------------------------------------!
             integer, intent(in)                             :: M ,N
             real(WP), dimension(:), intent(in)              :: ul, ur
-            real(WP), dimension(:), intent(in)              :: ub, ut
             real(WP), dimension(0:N, 0:M-1), intent(in)     :: u
             real(WP), dimension(0:N-1,0:M-1)                :: uinterp
             real(WP)                                        :: velcent 
-            real(WP)                                        :: test 
             integer                                         :: i,j
             !-------------------------------------------------------------!
             ! Cell centered u-velocity                                    !
@@ -503,19 +500,31 @@ module ns_lib
             open(unit=2, file='FORTRAN-data/u-velocity.dat')
             11 format(/)
             12 format(32ES25.10)
+            !-------------------------------------------------------------!
+            ! Looping over domain                                         !
+            !-------------------------------------------------------------!
             do j = 1, N
-                ! left
-                velcent         = (ul(j)+u(j,1))/2.0_WP
-                uinterp(j-1,0)  = velcent
+                !---------------------------------------------------------!
+                ! Left wall (well next too)                               !
+                !---------------------------------------------------------!
+                velcent                 = (ul(j)+u(j,1))/2.0_WP
+                uinterp(j-1,0)          = velcent
+                !---------------------------------------------------------!
+                ! Interior domain                                         !
+                !---------------------------------------------------------!
                 do i  = 2, M-1
                     velcent             = (u(j,i)+u(j,i-1))/2.0_WP
                     uinterp(j-1,i-1)    = velcent
                 end do
-                ! right
-                velcent             = (ur(j)+u(j,M-1))/2.0_WP
-                uinterp(j-1,M-1)    = velcent
+                !---------------------------------------------------------!
+                ! Right wall                                              !
+                !---------------------------------------------------------!
+                velcent                 = (ur(j)+u(j,M-1))/2.0_WP
+                uinterp(j-1,M-1)        = velcent
             end do
-            !write(1,11)
+            !-------------------------------------------------------------!
+            ! Writing cell centered velocities                            !
+            !-------------------------------------------------------------!
             do j = 0, N-1
                 write(2,12) ( uinterp(j,i), i=0,M-1)
             end do
@@ -524,12 +533,11 @@ module ns_lib
         !=================================================================!
         ! Writing v-velocity                                              !
         !=================================================================!
-        subroutine v_write(v,M,N,vl,vr,vt,vb)
+        subroutine v_write(v,M,N,vt,vb)
             !-------------------------------------------------------------!
             ! writing u-velocity preamble                                 !
             !-------------------------------------------------------------!
             integer, intent(in)                             :: M ,N
-            real(WP), dimension(:), intent(in)              :: vl, vr
             real(WP), dimension(:), intent(in)              :: vb, vt
             real(WP), dimension(0:N-1,0:M), intent(in)      :: v
             real(WP), dimension(0:N-1,0:M-1)                :: vinterp
@@ -542,18 +550,24 @@ module ns_lib
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
-            ! Cell centered u-velocity                                    !
+            ! Bottom wall                                                 !
             !-------------------------------------------------------------!
             do i = 1, M
                 velcent         = (v(1,i)+vb(i))/2.0_WP
                 vinterp(0,i-1)  = velcent
             end do 
+            !-------------------------------------------------------------!
+            ! Interior points                                             !
+            !-------------------------------------------------------------!
             do j = 2, N-1
                 do i = 1, M
                     velcent             = (v(j,i)+v(j-1,i))/2.0_WP
                     vinterp(j-1,i-1)    = velcent
                 end do
             end do
+            !-------------------------------------------------------------!
+            ! Top wall                                                    !
+            !-------------------------------------------------------------!
             do i = 1, M
                 velcent             = (v(N-1,i)+vt(i))/2.0_WP
                 vinterp(N-1,i-1)    = velcent

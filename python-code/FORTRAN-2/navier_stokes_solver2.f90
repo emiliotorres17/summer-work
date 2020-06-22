@@ -2,7 +2,6 @@ program navier_stokes
     use precision_m    
     use ns_lib 
     implicit none
-    real(WP)                                        :: xs = 0.0_WP, xf = 1.0_WP
     integer,    parameter                           :: M = 32, N = 32
     real(WP)                                        :: dx, dy, dt, nu
     real(WP),   dimension(0:N)                      :: ul, ur, vl, vr
@@ -14,8 +13,6 @@ program navier_stokes
     real(WP),   dimension(0:N-1, 0:M)               :: Lv, Ny
     real(WP),   dimension(0:N, 0:M)                 :: P
     real(WP)                                        :: maxerror
-    real(WP),   dimension(0:N-1,0:M-1)              :: uinterp
-    real(WP)                                        :: velcent 
     integer                                         :: i, j, nstep, tstep_F
     real(WP)                                        :: tmax, t
     integer                                         :: counter
@@ -38,12 +35,12 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ut          = 1.0_WP
     ub          = 0.0_WP
-    ur          = 0.0_WP
     ul          = 0.0_WP
+    ur          = 0.0_WP
     vt          = 0.0_WP
     vb          = 0.0_WP
-    vr          = 0.0_WP
     vl          = 0.0_WP
+    vr          = 0.0_WP
     !---------------------------------------------------------------------!
     ! Transport properties                                                !
     !---------------------------------------------------------------------!
@@ -54,13 +51,13 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Simulation running criteria                                         !
     !---------------------------------------------------------------------!
-    tmax        = 30.0_WP
+    tmax        = 5.0_WP
     maxerror    = (10.0_WP)**(-12.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
     ss_check    = 1.00
-    ss_max      = 1.0e-12
-    print '(A,/,4X,A,f16.10,/,4X,A,f16.10,/,4X,A,f16.10,&
-            /,4X,A,f16.10,/,4X,A,ES16.5)', &
+    ss_max      = 1.0e-7
+    print '(A,/,4X,A,f16.10,/,4X,A,f16.10,/,4X,A,f16.10, &
+            & /,4X,A,f16.10,/,4X,A,ES16.5)', &
             'Simulation running criteria', &    
             'time step -->', dt, &
             'x-spatial step size -->', dx, &
@@ -76,11 +73,12 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Time stepping loop                                                  !
     !---------------------------------------------------------------------!
+    nstep   = 0
     do while (nstep < tstep_F .and. ss_check > ss_max) 
         !-----------------------------------------------------------------!
         ! Updating time step and simulation time                          !
         !-----------------------------------------------------------------!
-        nstep   =  nstep + 1
+        nstep   = nstep + 1
         t       = t + dt   
         !-----------------------------------------------------------------!
         ! Calculating linear and non-linear derivatives                   !
@@ -104,7 +102,7 @@ program navier_stokes
         ! Updating pressure                                               !
         !-----------------------------------------------------------------!
         call calcpress(P, M, N, dx, dy, maxerror, ustar, vstar, ul, &
-                                ur, ub, ut, vl, vr, vb, vt)
+                                ur, vb, vt)
         !-----------------------------------------------------------------!
         ! Updating u and v                                                !
         !-----------------------------------------------------------------!
@@ -118,11 +116,17 @@ program navier_stokes
                 v(j,i) = vstar(j,i) - (P(j+1,i)-P(j,i))/dy
             end do 
         end do
+        !!-----------------------------------------------------------------!
+        !! Update boundary conditions                                      !
+        !!-----------------------------------------------------------------!
+        !ul          = u(:,1)
+        !ur          = ul
+        !vl(0:N-1)   = v(:,1)
+        !vr          = vl
         !-----------------------------------------------------------------!
         ! Calculating velocity divergence                                 !
         !-----------------------------------------------------------------!
-        call divergence(max_div, div, M, N, u, v, ul, ur, ut, ub, &
-                            vl, vr, vt, vb, dx, dy)
+        call divergence(max_div, div, M, N, u, v, ul, ur, vt, vb, dx, dy)
         !-----------------------------------------------------------------!
         ! Steady state check                                              !
         !-----------------------------------------------------------------!
@@ -163,8 +167,8 @@ program navier_stokes
         !-----------------------------------------------------------------!
         ! Cell centered u and v velocities                                !
         !-----------------------------------------------------------------!
-        call u_write(u,M,N,ul,ur,ut,ub)
-        call v_write(v,M,N,vl,vr,vt,vb)
+        call u_write(u,M,N,ul,ur)
+        call v_write(v,M,N,vt,vb)
         !-----------------------------------------------------------------!
         ! Linear derivative terms                                         !
         !-----------------------------------------------------------------!
