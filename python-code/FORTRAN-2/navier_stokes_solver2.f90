@@ -51,7 +51,7 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Simulation running criteria                                         !
     !---------------------------------------------------------------------!
-    tmax        = 5.0_WP
+    tmax        = 30.0_WP
     maxerror    = (10.0_WP)**(-12.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
     ss_check    = 1.00
@@ -67,7 +67,7 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Print variables                                                     !
     !---------------------------------------------------------------------!
-    open(unit=1, file='FORTRAN-data/output.out')
+    open(unit=1, file='FORTRAN-data/FORTRAN-32-data/output.out')
     10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, 4X, A, &
                 ES16.5,/,4X, A, ES16.5)
     !---------------------------------------------------------------------!

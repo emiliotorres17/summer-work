@@ -497,7 +497,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Cell centered u-velocity                                    !
             !-------------------------------------------------------------!
-            open(unit=2, file='FORTRAN-data/u-velocity.dat')
+            open(unit=2, file='FORTRAN-data/FORTRAN-32-data/u-velocity.dat')
             11 format(/)
             12 format(32ES25.10)
             !-------------------------------------------------------------!
@@ -546,7 +546,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=3, file='FORTRAN-data/v-velocity.dat')
+            open(unit=2, file='FORTRAN-data/FORTRAN-32-data/v-velocity.dat')
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
@@ -593,7 +593,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=4, file='FORTRAN-data/Lv-term.dat')
+            open(unit=2, file='FORTRAN-data/FORTRAN-32-data/Lv-term.dat')
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
@@ -617,7 +617,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=5, file='FORTRAN-data/Lu-term.dat')
+            open(unit=5, file='FORTRAN-data/FORTRAN-32-data/Lu-term.dat')
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
@@ -641,7 +641,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=120, file='FORTRAN-data/Nx-term.dat')
+            open(unit=120, file='FORTRAN-data/FORTRAN-32-data/Nx-term.dat')
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
@@ -665,7 +665,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=7, file='FORTRAN-data/Ny-term.dat')
+            open(unit=7, file='FORTRAN-data/FORTRAN-32-data/Ny-term.dat')
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
@@ -689,7 +689,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=121, file='FORTRAN-data/P-term.dat')
+            open(unit=121, file='FORTRAN-data/FORTRAN-32-data/P-term.dat')
             13 format(/)
             14 format(32ES25.10)
             !-------------------------------------------------------------!
