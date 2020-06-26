@@ -7,13 +7,13 @@ program ns_solve
     integer, parameter              :: M = 32, N = 32
     integer                         :: n_count, n_gs, n_gs_t, i, j
     real(WP)                        :: dx, dy, dt1, dt2, dt
-    real(WP)                        :: x, y, t, t_final
+    real(WP)                        :: t, t_final
     real(WP)                        :: Re, L, nu, Uwall
     real(WP)                        :: conv, conv_crit, conv_gs, conv_gs_limit 
     real(WP)                        :: conv_u, conv_v
     real(WP)                        :: rh, rh2, rRe
     real(WP)                        :: a, b        
-    real(WP)                        :: ua, ub, uc, ud, ue, va, vb, vc, vd, ve, vf
+    real(WP)                        :: ua, ub, uc, ud, ue, va, vb, vc, vd, vf
     real(WP), dimension(200000)     :: conv_hist_u, conv_hist_v
     real(WP), dimension(M+1, N+2)   :: u, u_star, a_grid, r_u, res_u
     real(WP), dimension(M+2, N+1)   :: v, v_star, b_grid, r_v, res_v
@@ -29,7 +29,7 @@ program ns_solve
     !---------------------------------------------------------------------!
     ! Steady state convergence criteria                                   !
     !---------------------------------------------------------------------!
-    conv_crit = (10.0_WP)**(-7.0_WP)  ! convergence criteria
+    conv_crit = (10.0_WP)**(-12.0_WP)  ! convergence criteria
     !---------------------------------------------------------------------!
     ! Discretization domain                                               !
     !---------------------------------------------------------------------!
