@@ -2,7 +2,7 @@ program navier_stokes
     use precision_m    
     use ns_lib 
     implicit none
-    integer,    parameter                           :: M = 32, N = 32
+    integer,    parameter                           :: M = 64, N = 64
     real(WP)                                        :: dx, dy, dt, nu
     real(WP),   dimension(0:N)                      :: ul, ur, vl, vr
     real(WP),   dimension(0:M)                      :: ub, ut, vb, vt
@@ -67,7 +67,7 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Print variables                                                     !
     !---------------------------------------------------------------------!
-    open(unit=1, file='FORTRAN-data/FORTRAN-32-data/output.out')
+    open(unit=1, file='FORTRAN-data/FORTRAN-64-data/output.out')
     10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, 4X, A, &
                 ES16.5,/,4X, A, ES16.5)
     !---------------------------------------------------------------------!
