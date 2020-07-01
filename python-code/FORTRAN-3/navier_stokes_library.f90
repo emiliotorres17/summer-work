@@ -4,7 +4,8 @@ module navier_stokes_library
     !=====================================================================!
     use precision_m
     implicit none
-    public  :: time_derv_calc, pressure_calc
+    public  :: time_derv_calc, pressure_calc, velocity_boundary_condition, &
+                velocity_write
     contains    
     !=====================================================================!
     ! Time derivate calculation                                           !
@@ -31,6 +32,13 @@ module navier_stokes_library
         dx2 = 1.0_WP/(dx*dx)
         dy2 = 1.0_WP/(dy*dy)
         !-----------------------------------------------------------------!
+        ! Preallocating output variables                                  !
+        !-----------------------------------------------------------------!
+        Lx  = 0.0_WP
+        Nx  = 0.0_WP
+        Ly  = 0.0_WP
+        Ny  = 0.0_WP
+        !-----------------------------------------------------------------!
         ! Calculating Lx and Nx                                           !
         !-----------------------------------------------------------------!
         do j = 1, N 
@@ -38,19 +46,24 @@ module navier_stokes_library
                 !---------------------------------------------------------!
                 ! Calculating Ly                                          !
                 !---------------------------------------------------------!
-                Lx(j,i) = nu*dx2*(u(j,i+1) + 2.0_WP*u(i,j) + u(i-1,j)) 
-                Lx(j,i) = Lx(j,i) + nu*dy2*(u(j+1,i) + 2.0_WP*u(i,j) + u(i,j-1)) 
+                Lx(j,i) = nu*dx2*(u(j,i+1) - 2.0_WP*u(j,i) + u(j,i-1)) 
+                Lx(j,i) = Lx(j,i) + nu*dy2*(u(j+1,i) - 2.0_WP*u(j,i) + u(j-1,i)) 
                 !---------------------------------------------------------!
                 ! Calculating Nx                                          !
                 !---------------------------------------------------------!
-                u1      = 0.5_WP*(u(j,i) + u(j-1, i))
-                u2      = 0.5_WP*(u(j+1,i) + u(j, i))
-                u3      = 0.5_WP*(u(j+1,i) + u(j,i))
-                u4      = 0.5_WP*(u(j,i) + u(j-1,i))
-                v1      = 0.5_WP*(v(j,i+1) + v(j,i))
-                v2      = 0.5_WP*(v(j,i) + v(j-1,i))
-                Nx(j,i) = rdx*((u2)**2.0_WP + (u1)**2.0_WP)
-                Nx(j,i) = Nx(j,i) + rdx*(v1*u3 + v2*u4)
+                u1      = 0.5_WP*(u(j,i)    + u(j, i-1))
+                u2      = 0.5_WP*(u(j,i+1)  + u(j, i))
+
+                u3      = 0.5_WP*(u(j+1,i)  + u(j,i))
+                u4      = 0.5_WP*(u(j,i)    + u(j-1,i))
+                
+                v1      = 0.5_WP*(v(j,i+1)      + v(j,i))
+                v2      = 0.5_WP*(v(j-1,i+1)    + v(j-1,i))
+                
+                Nx(j,i) = rdx*((u2)**2.0_WP - (u1)**2.0_WP)
+                Nx(j,i) = Nx(j,i) + rdx*(v1*u3 - v2*u4)
+
+
             end do
         end do
         !-----------------------------------------------------------------!
@@ -61,17 +74,22 @@ module navier_stokes_library
                 !---------------------------------------------------------!
                 ! Calculating Ly                                          !
                 !---------------------------------------------------------!
-                Ly(j,i) = nu*dx2*(v(j,i+1) + 2.0_WP*v(i,j) + v(i-1,j)) 
-                Ly(j,i) = Lx(j,i) + nu*dy2*(v(j+1,i) + 2.0_WP*v(i,j) + v(i,j-1)) 
+                Ly(j,i) = nu*dx2*(v(j,i+1) - 2.0_WP*v(j,i) + v(j,i-1)) 
+                Ly(j,i) = Ly(j,i) + nu*dy2*(v(j+1,i) - 2.0_WP*v(j,i) + v(j-1,i)) 
                 !---------------------------------------------------------!
                 ! Calculating Ny                                          !
                 !---------------------------------------------------------!
                 u1      = 0.5_WP*(u(j+1,i) + u(j,i))
                 v1      = 0.5_WP*(v(j,i+1) + v(j,i))
-                u2      = 0.5_WP*(u(j-1,i) + u(j,i))
+
+                u2      = 0.5_WP*(u(j+1,i-1) + u(j,i-1))
                 v2      = 0.5_WP*(v(j,i-1) + v(j,i))
+                
                 v3      = 0.5_WP*(v(j+1,i) + v(j,i))
                 v4      = 0.5_WP*(v(j-1,i) + v(j,i))
+                
+
+
                 Ny(j,i) = rdx*(u1*v1 - u2*v2)
                 Ny(j,i) = Ny(j,i) + rdy*(v3**2.0_WP - v4**2.0_WP)
             end do
@@ -91,11 +109,11 @@ module navier_stokes_library
         real(WP), intent(in)                                :: GS_max
         real(WP)                                            :: rdx, rdy, rdt, dx2, dy2
         real(WP), dimension(0:N+1, 0:M+1), intent(out)      :: P
-        real(WP), dimension(0:N+1, 0:M+1)                   :: f
+        real(WP), dimension(0:N+1, 0:M+1)                   :: f, f2
         integer                                             :: i ,j
         real(WP)                                            :: GS_error
         real(WP), dimension(1:M, 1:N)                       :: res
-        integer                                             :: n_gs
+        integer                                             :: n_gs, counter = 0
         !-----------------------------------------------------------------!
         ! Differentiation variables                                       !
         !-----------------------------------------------------------------!
@@ -104,19 +122,27 @@ module navier_stokes_library
         rdx     = 1.0_WP/dx
         rdy     = 1.0_WP/dy
         rdt     = 1.0_WP/dt
+        P       = 0.0_WP
+        f       = 0.0_WP
+        f2      = 0.0_WP
         !-----------------------------------------------------------------!
         ! Calculate RHS                                                   !
         !-----------------------------------------------------------------!
         do j = 1, N
             do i = 1, M
-                f(j,i)  = rdx*(ustar(j,i) - ustar(j,i-1)) + &
-                          rdy*(vstar(j,i) - ustar(j-1,i))
+                f(j,i)  = 0.25_WP*(dx/dt)*(ustar(j,i) - ustar(j,i-1) + &
+                                     vstar(j,i) - vstar(j-1,i))
+                f2(j,i) = rdt*rdx*(ustar(j,i) - ustar(j,i-1) + &
+                                     vstar(j,i) - vstar(j-1,i))
             end do
         end do
         !-----------------------------------------------------------------!
         ! GS iteration                                                    !
         !-----------------------------------------------------------------!
+        n_gs        = 0
+        GS_error    = 1.0_WP
         do while (GS_error > GS_max)
+        !do gs_step = 1, 1
             n_gs    = n_gs + 1
             !-------------------------------------------------------------!
             ! Calculating Pressure                                        !
@@ -124,7 +150,7 @@ module navier_stokes_library
             do j = 1, N
                 do i = 1, M
                     P(j,i) = 0.25_WP*(P(j,i+1) + P(j,i-1) + P(j+1,i) + P(j-1, i)) - &
-                                0.25_WP*dx2*rdt*f(j,i)
+                                f(j,i)
                 end do
             end do
             !-------------------------------------------------------------!
@@ -133,7 +159,7 @@ module navier_stokes_library
             P(:,0)      = P(:,1)
             P(:,M+1)    = P(:,M)
             P(0,:)      = P(1,:)
-            P(M+1,:)    = P(M,:)
+            P(N+1,:)    = P(N,:)
             !-------------------------------------------------------------!
             ! Calculating Pressure residual                               !
             !-------------------------------------------------------------!
@@ -141,13 +167,94 @@ module navier_stokes_library
                 do i = 1, M
                     res(j,i) = dx2*(P(j,i+1) - 2.0_WP*P(j,i) + P(j,i-1)) + &
                             dy2*(P(j+1,i) - 2.0_WP*P(j,i) + P(j-1,i)) - &
-                            rdt*f(j,i)
+                            f2(j,i)
                 end do
             end do
             !-------------------------------------------------------------!
             ! Checking convergence                                        !
             !-------------------------------------------------------------!
             GS_error    = maxval(abs(res))
+            counter     = counter + 1 
+            !if (counter > 300) then
+            !    print *, 'counter print --> ', GS_error
+            !    counter = 0
+            !end if
         end do
+        print '(4x, A, I10)', 'GS iters -->', n_gs
+        print '(4x, A, ES16.5)', 'convergence error -->', GS_error
     end subroutine
+    !=====================================================================!
+    ! Velocity Boundary conditions                                        !
+    !=====================================================================!
+    subroutine velocity_boundary_condition(velx, vely, M, N, u, v, ul, ur, &
+                                            vl, vr, ut, ub, vt, vb) 
+        !-----------------------------------------------------------------!
+        ! Boundary condition preamble                                     !
+        !-----------------------------------------------------------------!
+        integer, intent(in)                                 :: M, N
+        real(WP), intent(in)                                :: ul ,ur, ut, ub, vl, vr, vt, vb
+        real(WP), dimension(0:N+1, 0:M), intent(in)         :: u
+        real(WP), dimension(0:N, 0:M+1), intent(in)         :: v
+        real(WP), dimension(0:N+1, 0:M), intent(out)        :: velx
+        real(WP), dimension(0:N, 0:M+1), intent(out)        :: vely
+        !-----------------------------------------------------------------!
+        ! Setting u-x boundary conditions                                 !
+        !-----------------------------------------------------------------!
+        velx(:,0)   = ul  
+        velx(:,M)   = ur 
+        velx(0,:)   = 2.0_WP*ub - u(1,:)
+        velx(N+1,:) = 2.0_WP*ut - u(N,:)
+        !-----------------------------------------------------------------!
+        ! Setting u-y boundary conditions                                 !
+        !-----------------------------------------------------------------!
+        vely(:,0)   = 2.0_WP*vl - v(:,1)  
+        vely(:,M+1) = 2.0_WP*vr - v(:,M)  
+        vely(0,:)   = vb
+        vely(N,:)   = vt
+    end subroutine
+    !=====================================================================!
+    ! Interpolated velocity fields                                        !
+    !=====================================================================!
+    subroutine velocity_write(M, N, u, v, flag)
+        !-----------------------------------------------------------------!
+        ! Velocity write preamble                                         !
+        !-----------------------------------------------------------------!
+        integer, intent(in)                         :: M, N
+        real(WP), dimension(0:N+1, 0:M)             :: u
+        real(WP), dimension(0:N, 0:M)               :: v
+        integer, intent(in)                         :: flag
+        real(WP), dimension(1:N, 1:M)               :: ucent
+        integer                                     :: i, j
+        !-----------------------------------------------------------------!
+        ! Averaging u-velocity                                            !
+        !-----------------------------------------------------------------!
+        if (flag == 0) then
+            open(unit=1, file='u-velocity.dat')
+            10 format(64ES25.10)
+            do j = 1, N
+                do i = 1, M
+                    ucent(j,i) = 0.5_WP*(u(j,i+1) + u(j,i))  
+                end do
+            end do
+            do j = 1, N
+                write(1, 10) (u(j,i), i=1, M)
+            end do
+            close(unit=1)
+        !-----------------------------------------------------------------!
+        ! Averaging v-velocity                                            !
+        !-----------------------------------------------------------------!
+        else if (flag == 1) then
+            open(unit=2, file='v-velocity.dat')
+            11 format(64ES25.10)
+            do j = 1, N
+                do i = 1, M
+                    ucent(j,i) = 0.5_WP*(v(j+1,i) + v(j,i))  
+                end do
+            end do
+            do j = 1, N
+                write(2, 11) (v(j,i), i=1, M)
+            end do
+            close(unit=2)
+        end if
+        end subroutine 
 end module
