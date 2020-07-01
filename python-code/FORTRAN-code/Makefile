@@ -4,6 +4,7 @@ SRC=precision_m.f90 navier_stokes.f90
 OBJ=${SRC:.f90=.o}
 
 %.o: %.f90
+	clear
 	$(FC) $(FFLAGS) -o $@ -c $<
 	
 NS_solve: $(OBJ)
