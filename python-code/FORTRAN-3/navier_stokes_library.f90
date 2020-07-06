@@ -98,22 +98,26 @@ module navier_stokes_library
     !=====================================================================!
     ! Pressure calculation                                                !
     !=====================================================================!
-    subroutine pressure_calc(P, M, N, ustar, vstar, dx, dy, dt, GS_max)
+    subroutine pressure_calc(P, n_gs, GS_error, M, N, Pold, ustar, vstar, &
+                                dx, dy, dt, GS_max, iter_max)
         !-----------------------------------------------------------------!
         ! Pressure calculation preamble                                   !
         !-----------------------------------------------------------------!
         integer,  intent(in)                                :: M, N
+        integer, intent(in)                                 :: iter_max
         real(WP), dimension(0:N+1, 0:M), intent(in)         :: ustar 
         real(WP), dimension(0:N, 0:M+1), intent(in)         :: vstar 
         real(WP), intent(in)                                :: dx, dy, dt
         real(WP), intent(in)                                :: GS_max
+        real(WP), dimension(0:N+1, 0:M+1), intent(in)       :: Pold
         real(WP)                                            :: rdx, rdy, rdt, dx2, dy2
         real(WP), dimension(0:N+1, 0:M+1), intent(out)      :: P
+        integer, intent(out)                                :: n_gs
+        real(WP), intent(out)                               :: GS_error
         real(WP), dimension(0:N+1, 0:M+1)                   :: f, f2
         integer                                             :: i ,j
-        real(WP)                                            :: GS_error
         real(WP), dimension(1:M, 1:N)                       :: res
-        integer                                             :: n_gs, counter = 0
+        integer                                             :: counter = 0
         !-----------------------------------------------------------------!
         ! Differentiation variables                                       !
         !-----------------------------------------------------------------!
@@ -122,9 +126,9 @@ module navier_stokes_library
         rdx     = 1.0_WP/dx
         rdy     = 1.0_WP/dy
         rdt     = 1.0_WP/dt
-        P       = 0.0_WP
         f       = 0.0_WP
         f2      = 0.0_WP
+        P       = Pold
         !-----------------------------------------------------------------!
         ! Calculate RHS                                                   !
         !-----------------------------------------------------------------!
@@ -141,8 +145,7 @@ module navier_stokes_library
         !-----------------------------------------------------------------!
         n_gs        = 0
         GS_error    = 1.0_WP
-        do while (GS_error > GS_max)
-        !do gs_step = 1, 1
+        do while (GS_error > GS_max .and. n_gs < iter_max)
             n_gs    = n_gs + 1
             !-------------------------------------------------------------!
             ! Calculating Pressure                                        !
@@ -175,13 +178,7 @@ module navier_stokes_library
             !-------------------------------------------------------------!
             GS_error    = maxval(abs(res))
             counter     = counter + 1 
-            !if (counter > 300) then
-            !    print *, 'counter print --> ', GS_error
-            !    counter = 0
-            !end if
         end do
-        print '(4x, A, I10)', 'GS iters -->', n_gs
-        print '(4x, A, ES16.5)', 'convergence error -->', GS_error
     end subroutine
     !=====================================================================!
     ! Velocity Boundary conditions                                        !
