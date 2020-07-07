@@ -118,6 +118,7 @@ module navier_stokes_library
         integer                                             :: i ,j
         real(WP), dimension(1:M, 1:N)                       :: res
         integer                                             :: counter = 0
+        real(WP)                                            :: rho, omega, pi = 4.0_WP*atan(1.0_WP)
         !-----------------------------------------------------------------!
         ! Differentiation variables                                       !
         !-----------------------------------------------------------------!
@@ -129,6 +130,8 @@ module navier_stokes_library
         f       = 0.0_WP
         f2      = 0.0_WP
         P       = Pold
+        rho     = 0.5_WP*(cos(pi/dble(M)) + cos(pi/dble(N)))
+        omega   = 2.0_WP/(1.0_WP + sqrt(1.0_WP -  rho**(2.0_WP)))
         !-----------------------------------------------------------------!
         ! Calculate RHS                                                   !
         !-----------------------------------------------------------------!
@@ -152,8 +155,10 @@ module navier_stokes_library
             !-------------------------------------------------------------!
             do j = 1, N
                 do i = 1, M
-                    P(j,i) = 0.25_WP*(P(j,i+1) + P(j,i-1) + P(j+1,i) + P(j-1, i)) - &
-                                f(j,i)
+                    P(j,i) = P(j,i) + & 
+                                omega*(0.25_WP*(P(j,i+1) + P(j,i-1) + &
+                                P(j+1,i) + P(j-1, i)) - &
+                                f(j,i) - P(j,i))
                 end do
             end do
             !-------------------------------------------------------------!

@@ -5,7 +5,7 @@ program main_NS
     use precision_m                                       
     use navier_stokes_library   
     implicit none
-    integer, parameter                      :: M = 64, N = 64
+    integer, parameter                      :: M = 128, N = 128
     real(WP)                                :: dx, dy, nu
     real(WP)                                :: dt, dt1, dt2, a, b
     real(WP), dimension(0:N+1, 0:M)         :: u, ustar, uold, Lx, Nx, a_grid 
