@@ -5,7 +5,7 @@ program main_NS
     use precision_m                                       
     use navier_stokes_library   
     implicit none
-    integer, parameter                      :: M = 128, N = 128
+    integer, parameter                      :: M = 256, N = 256
     real(WP)                                :: dx, dy, nu
     real(WP)                                :: dt, dt1, dt2, a, b
     real(WP), dimension(0:N+1, 0:M)         :: u, ustar, uold, Lx, Nx, a_grid 
@@ -80,11 +80,11 @@ program main_NS
     !=====================================================================!
     ! Writing variables                                                   !
     !=====================================================================!
-    open(unit=1, file='data/u-temp.dat')
-    open(unit=2, file='data/v-temp.dat')
-    open(unit=3, file='data/u-star-temp.dat')
-    open(unit=4, file='data/v-star-temp.dat')
-    open(unit=5, file='data/p-temp.dat')
+    open(unit=1, file='data/data-256-SOR/u-temp.dat')
+    open(unit=2, file='data/data-256-SOR/v-temp.dat')
+    open(unit=3, file='data/data-256-SOR/u-star-temp.dat')
+    open(unit=4, file='data/data-256-SOR/v-star-temp.dat')
+    open(unit=5, file='data/data-256-SOR/p-temp.dat')
     open(unit=120, file='data/output.txt')
     10 format(300ES25.10)
     12 format(A, ES25.5, 4X, A, I5, A, I10, /, 4x, A, I10, & 
@@ -108,7 +108,11 @@ program main_NS
         !-----------------------------------------------------------------!
         ! GS criteria                                                     !
         !-----------------------------------------------------------------!
-        if (t < 5.0_WP) then
+        if (t < 1.0_WP) then
+            max_error   = (10.0_WP)**(-0.0_WP)
+        elseif (t > 1.0_WP .and. t < 2.0_WP ) then
+            max_error   = (10.0_WP)**(-1.0_WP)
+        elseif (t > 2.0_WP .and. t < 5.0_WP ) then
             max_error   = (10.0_WP)**(-2.0_WP)
         elseif (t > 5.0_WP .and. t < 10.0_WP ) then
             max_error   = (10.0_WP)**(-4.0_WP)

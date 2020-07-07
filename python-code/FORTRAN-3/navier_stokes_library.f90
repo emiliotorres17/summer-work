@@ -147,7 +147,7 @@ module navier_stokes_library
         ! GS iteration                                                    !
         !-----------------------------------------------------------------!
         n_gs        = 0
-        GS_error    = 1.0_WP
+        GS_error    = 100.0_WP
         do while (GS_error > GS_max .and. n_gs < iter_max)
             n_gs    = n_gs + 1
             !-------------------------------------------------------------!
