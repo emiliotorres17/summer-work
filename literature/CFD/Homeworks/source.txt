@@ -1,0 +1,13 @@
+Ensure pi is defined with full precsion
+
+Matlab:
+q = cos(omega * t) * (-0.6e1 * (x - 0.5e0) * (0.1e1 + cos(pi * (x - 0.5e0))) * sin(0.5e1 * pi * x) + 0.6e1 * (x - 0.5e0) ^ 2 * pi * sin(pi * (x - 0.5e0)) * sin(0.5e1 * pi * x) - 0.30e2 * (x - 0.5e0) ^ 2 * (0.1e1 + cos(pi * (x - 0.5e0))) * pi * cos(0.5e1 * pi * x) + (x - 0.5e0) ^ 3 * pi ^ 2 * cos(pi * (x - 0.5e0)) * sin(0.5e1 * pi * x) + 0.10e2 * (x - 0.5e0) ^ 3 * pi ^ 2 * sin(pi * (x - 0.5e0)) * cos(0.5e1 * pi * x) + 0.25e2 * (x - 0.5e0) ^ 3 * (0.1e1 + cos(pi * (x - 0.5e0))) * pi ^ 2 * sin(0.5e1 * pi * x));
+
+Fortran:
+q = cos(omega * t) * (-0.6D1 * (x - 0.5D0) * (0.1D1 + cos(pi * (x - 0.5D0))) * sin(0.5D1 * pi * x) + 0.6D1 * (x - 0.5D0) ** 2 * pi * sin(pi * (x - 0.5D0)) * sin(0.5D1 * pi * x) - 0.30D2 * (x - 0.5D0) ** 2 * (0.1D1 + cos(pi * (x - 0.5D0))) * pi * cos(0.5D1 * pi * x) + (x - 0.5D0) ** 3 * pi ** 2 * cos(pi * (x - 0.5D0)) * sin(0.5D1 * pi * x) + 0.10D2 * (x - 0.5D0) ** 3 * pi ** 2 * sin(pi * (x - 0.5D0)) * cos(0.5D1 * pi * x) + 0.25D2 * (x - 0.5D0) ** 3 * (0.1D1 + cos(pi * (x - 0.5D0))) * pi ** 2 * sin(0.5D1 * pi * x))
+
+C:
+q = cos(omega * t) * (-0.6e1 * (x - 0.5e0) * (0.1e1 + cos(pi * (x - 0.5e0))) * sin(0.5e1 * pi * x) + 0.6e1 * pow(x - 0.5e0, 0.2e1) * pi * sin(pi * (x - 0.5e0)) * sin(0.5e1 * pi * x) - 0.30e2 * pow(x - 0.5e0, 0.2e1) * (0.1e1 + cos(pi * (x - 0.5e0))) * pi * cos(0.5e1 * pi * x) + pow(x - 0.5e0, 0.3e1) * pi * pi * cos(pi * (x - 0.5e0)) * sin(0.5e1 * pi * x) + 0.10e2 * pow(x - 0.5e0, 0.3e1) * pi * pi * sin(pi * (x - 0.5e0)) * cos(0.5e1 * pi * x) + 0.25e2 * pow(x - 0.5e0, 0.3e1) * (0.1e1 + cos(pi * (x - 0.5e0))) * pi * pi * sin(0.5e1 * pi * x));
+
+
+
