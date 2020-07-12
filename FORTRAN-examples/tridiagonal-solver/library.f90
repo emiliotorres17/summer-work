@@ -11,13 +11,13 @@ module library
         ! Time derivative preamble                                        !
         !-----------------------------------------------------------------!
         integer,  intent(in)                                :: M
-        real(WP), dimension(0:M), intent(in)                :: vec1, rhs
-        real(WP), dimension(0:M), intent(out)               :: sol
-        real(WP), dimension(1:M), intent(in)                :: vec3
-        real(WP), dimension(0:M-1), intent(in)              :: vec2
-        real(WP), dimension(0:M)                            :: b, d
-        real(WP), dimension(1:M)                            :: a
-        real(WP), dimension(0:M-1)                          :: c
+        real(WP), dimension(1:M-1), intent(in)              :: vec1, rhs
+        real(WP), dimension(1:M-1), intent(out)             :: sol
+        real(WP), dimension(2:M-1), intent(in)              :: vec3
+        real(WP), dimension(1:M-2), intent(in)              :: vec2
+        real(WP), dimension(1:M-1)                          :: b, d
+        real(WP), dimension(2:M-1)                          :: a
+        real(WP), dimension(1:M-2)                          :: c
         integer                                             :: i
         !-----------------------------------------------------------------!
         ! Defining variables                                              !
@@ -29,15 +29,15 @@ module library
         !-----------------------------------------------------------------!
         ! Elimination                                                     !
         !-----------------------------------------------------------------!
-        do i = 1, M
+        do i = 2, M-1
             b(i)    = b(i) - c(i-1)*a(i)/b(i-1)
             d(i)    = d(i) - d(i-1)*a(i)/b(i-1)
         end do
         !-----------------------------------------------------------------!
         ! Back substitution                                               !
         !-----------------------------------------------------------------!
-        d(M)    = d(M)/b(M)
-        do i = M-1, 0, -1
+        d(M-1)    = d(M-1)/b(M-1)
+        do i = M-2, 1, -1
             d(i)    = (d(i)-c(i)*d(i+1))/b(i)
         end do
         sol = d

@@ -1,13 +1,13 @@
 FC=gfortran
 FFLAGS=-O3 -Wall -Wextra -std=f2008
-SRC=precision_m.f90 tri_solver.f90
+SRC=precision_m.f90 library.f90 laasonen_example.f90
 OBJ=${SRC:.f90=.o}
 
 
 %.o: %.f90
 	$(FC) $(FFLAGS) -o $@ -c $<
-tri_solve: $(OBJ)
+btcs_solve: $(OBJ)
 	@rm -fr data/*.dat
 	$(FC) $(FFLAGS) -o $@ $(OBJ)
 clean:
-	@rm -f *.mod *.o tri_solve
+	@rm -f *.mod *.o btcs_solve
