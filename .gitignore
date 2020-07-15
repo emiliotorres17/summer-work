@@ -43,3 +43,8 @@ FORTRAN-examples/cmake-example/maths
 python-code/FORTRAN-code/NS_solve
 python-code/FORTRAN-3/NS_solve
 python-code/development/NS_solve
+FORTRAN-examples/tridiagonal-solver/diffusion1.m
+FORTRAN-examples/tridiagonal-solver/diffusion0.m
+FORTRAN-examples/tridiagonal-solver/1d_heat_solve
+FORTRAN-examples/SOR-example/SOR_solve
+*/*/data/*
