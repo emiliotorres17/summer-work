@@ -6,7 +6,7 @@ program heat_equation
     !=====================================================================!
     implicit none
     real(WP), parameter                     :: pi = 4.0_WP*atan(1.0_WP)
-    integer, parameter                      :: M = 16, Mex = 128
+    integer, parameter                      :: M = 32, Mex = 128
     real(WP), dimension(0:M)                :: u, usol, ucn, x
     real(WP), dimension(0:Mex)              :: uex, xex
     real(WP), dimension(1:M-1)              :: b, d, sol, sol_cn
@@ -14,7 +14,7 @@ program heat_equation
     real(WP), dimension(1:M-2)              :: c
     real(WP)                                :: dt, dx, L, alpha, dx_e
     real(WP)                                :: t, tfinal
-    integer                                 :: i, n
+    integer                                 :: i
     real(WP)                                :: k
     !=====================================================================!
     ! Defining files                                                      !
