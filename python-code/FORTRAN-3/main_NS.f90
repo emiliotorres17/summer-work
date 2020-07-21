@@ -125,34 +125,6 @@ program main_NS
         else 
             max_error   = (10.0_WP)**(-8.0_WP)
         end if
-
-
-
-        !if (t < 1.0_WP) then
-        !    max_error   = (10.0_WP)**(-3.0_WP)
-        !    gs_iter_max = 200
-        !elseif (t > 1.0_WP .and. t < 2.0_WP) then
-        !    max_error   = (10.0_WP)**(-3.0_WP)
-        !    gs_iter_max = 200
-        !elseif (t > 2.0_WP .and. t < 3.0_WP) then
-        !    gs_iter_max = 200
-        !    max_error   = (10.0_WP)**(-3.0_WP)
-        !elseif ( t > 3.0_WP .and. t < 8.0_WP) then 
-        !    max_error   = (10.0_WP)**(-5.0_WP)
-        !    gs_iter_max = 5000
-        !elseif ( t > 8.0_WP .and. t < 10.0_WP) then 
-        !    gs_iter_max = 5000
-        !    max_error   = (10.0_WP)**(-7.0_WP)
-        !elseif ( t > 10.0_WP .and. t < 12.0_WP) then 
-        !    max_error   = (10.0_WP)**(-9.0_WP)
-        !    gs_iter_max = 5000
-        !elseif ( t > 12.0_WP .and. t < 14.0_WP) then 
-        !    max_error   = (10.0_WP)**(-10.0_WP)
-        !    gs_iter_max = 5000
-        !else
-        !    max_error   = (10.0_WP)**(-12.0_WP)
-        !    gs_iter_max = 5000
-        !end if
         !-----------------------------------------------------------------!
         ! Star time derivative                                            !
         !-----------------------------------------------------------------!
@@ -170,8 +142,6 @@ program main_NS
                 vstar(j,i)  = v(j,i) + dt*(-Ny(j,i) + Ly(j,i))
             end do
         end do
-        !call velocity_boundary_condition(ustar, vstar, M, N, ustar, vstar, &
-        !                                    ul, ur, vl, vr, ut, ub, vt, vb) 
         !-----------------------------------------------------------------!
         ! Setting u-x boundary conditions                                 !
         !-----------------------------------------------------------------!

@@ -2,8 +2,7 @@ program navier_stokes
     use precision_m    
     use ns_lib 
     implicit none
-    integer,    parameter                           :: M = 32, N = 32
-    real(WP),   dimension(0:N)                      :: x, y
+    integer,    parameter                           :: M = 64, N = 64
     real(WP)                                        :: dx, dy, dt, nu
     real(WP),   dimension(0:N)                      :: ul, ur, vl, vr
     real(WP),   dimension(0:M)                      :: ub, ut, vb, vt
@@ -12,7 +11,7 @@ program navier_stokes
     real(WP),   dimension(0:N, 0:M-1)               :: Lu
     real(WP),   dimension(0:N, 0:M-1)               :: Nx
     real(WP),   dimension(0:N-1, 0:M)               :: Lv, Ny
-    real(WP),   dimension(0:N, 0:M)                 :: P
+    real(WP),   dimension(0:N, 0:M)                 :: P, Pold
     real(WP)                                        :: maxerror
     integer                                         :: i, j, nstep, tstep_F
     real(WP)                                        :: tmax, t
@@ -21,7 +20,6 @@ program navier_stokes
     real(WP)                                        :: div
     real(WP)                                        :: res_u, res_v
     real(WP)                                        :: ss_check, ss_max
-    real(WP)                                        :: dist
     !---------------------------------------------------------------------!
     ! Preallocating variables                                             !
     !---------------------------------------------------------------------!
@@ -32,11 +30,13 @@ program navier_stokes
     vold        = 0.0_WP
     ustar       = 0.0_WP
     vstar       = 0.0_WP
+    P           = 0.0_WP
+    Pold        = 0.0_WP
     !---------------------------------------------------------------------!
     ! Boundary conditions                                                 !
     !---------------------------------------------------------------------!
     ut          = 1.0_WP
-    ub          = 0.0_WP
+    ub          = 0.5_WP
     ul          = 0.0_WP
     ur          = 0.0_WP
     vt          = 0.0_WP
@@ -53,8 +53,8 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Simulation running criteria                                         !
     !---------------------------------------------------------------------!
-    tmax        = 2.0_WP
-    maxerror    = (10.0_WP)**(-12.0_WP)
+    tmax        = 30.0_WP
+    maxerror    = (10.0_WP)**(-10.0_WP)
     tstep_F     = int(1.0000001_WP*tmax/dt)
     ss_check    = 1.00
     ss_max      = 1.0e-7
@@ -69,7 +69,7 @@ program navier_stokes
     !---------------------------------------------------------------------!
     ! Print variables                                                     !
     !---------------------------------------------------------------------!
-    open(unit=1, file='FORTRAN-data/FORTRAN-32-data/output.out')
+    open(unit=1, file='FORTRAN-data/FORTRAN-64-data/output.out')
     10 format(I8, A, I8, 4X, A, f10.6, 4X, A, ES16.5, /, 4X, A, &
                 ES16.5,/,4X, A, ES16.5)
     !---------------------------------------------------------------------!
@@ -104,7 +104,8 @@ program navier_stokes
         ! Updating pressure                                               !
         !-----------------------------------------------------------------!
         call calcpress(P, M, N, dx, dy, maxerror, ustar, vstar, ul, &
-                                ur, vb, vt)
+                                ur, vb, vt, Pold)
+        Pold    = P
         !-----------------------------------------------------------------!
         ! Updating u and v                                                !
         !-----------------------------------------------------------------!

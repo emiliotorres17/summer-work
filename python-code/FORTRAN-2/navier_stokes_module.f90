@@ -277,7 +277,7 @@ module ns_lib
         ! Pressure implementation                                         !
         !-----------------------------------------------------------------!
         subroutine calcpress(P, M, N, dx, dy, maxerror, ustar, vstar, ul, &
-                            ur, vb, vt)
+                            ur, vb, vt, Pint)
             !-------------------------------------------------------------!
             ! Pressure implementation preamble                            !
             !-------------------------------------------------------------!
@@ -287,6 +287,7 @@ module ns_lib
             real(WP), dimension(:), intent(in)              :: vb, vt
             real(WP), dimension(0:N, 0:M-1), intent(in)     :: ustar
             real(WP), dimension(0:N-1,0:M), intent(in)      :: vstar
+            real(WP), dimension(0:N, 0:M)                   :: Pint
             real(WP)                                        :: dx2, dy2, rhs
             real(WP)                                        :: maxerror
             integer                                         :: i, j, gsiter
@@ -306,7 +307,7 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Preallocating variables                                     !
             !-------------------------------------------------------------!
-            P       = 0.0_WP
+            P       = Pint
             Pold    = 0.0_WP
             !-------------------------------------------------------------!
             ! Gauss Seidel loop                                           !
@@ -497,9 +498,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Cell centered u-velocity                                    !
             !-------------------------------------------------------------!
-            open(unit=2, file='FORTRAN-data/FORTRAN-32-data/u-velocity.dat')
+            open(unit=2, file='FORTRAN-data/FORTRAN-64-data/u-velocity.dat')
             11 format(/)
-            12 format(32ES25.10)
+            12 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Looping over domain                                         !
             !-------------------------------------------------------------!
@@ -546,9 +547,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=3, file='FORTRAN-data/FORTRAN-32-data/v-velocity.dat')
+            open(unit=3, file='FORTRAN-data/FORTRAN-64-data/v-velocity.dat')
             13 format(/)
-            14 format(32ES25.10)
+            14 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Bottom wall                                                 !
             !-------------------------------------------------------------!
@@ -593,9 +594,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=4, file='FORTRAN-data/FORTRAN-32-data/Lv-term.dat')
+            open(unit=4, file='FORTRAN-data/FORTRAN-64-data/Lv-term.dat')
             13 format(/)
-            14 format(32ES25.10)
+            14 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
@@ -617,9 +618,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=5, file='FORTRAN-data/FORTRAN-32-data/Lu-term.dat')
+            open(unit=5, file='FORTRAN-data/FORTRAN-64-data/Lu-term.dat')
             13 format(/)
-            14 format(32ES25.10)
+            14 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
@@ -641,9 +642,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=120, file='FORTRAN-data/FORTRAN-32-data/Nx-term.dat')
+            open(unit=120, file='FORTRAN-data/FORTRAN-64-data/Nx-term.dat')
             13 format(/)
-            14 format(32ES25.10)
+            14 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
@@ -665,9 +666,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=7, file='FORTRAN-data/FORTRAN-32-data/Ny-term.dat')
+            open(unit=7, file='FORTRAN-data/FORTRAN-64-data/Ny-term.dat')
             13 format(/)
-            14 format(32ES25.10)
+            14 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
@@ -689,9 +690,9 @@ module ns_lib
             !-------------------------------------------------------------!
             ! Print variables                                             !
             !-------------------------------------------------------------!
-            open(unit=121, file='FORTRAN-data/FORTRAN-32-data/P-term.dat')
+            open(unit=121, file='FORTRAN-data/FORTRAN-64-data/P-term.dat')
             13 format(/)
-            14 format(32ES25.10)
+            14 format(64ES25.10)
             !-------------------------------------------------------------!
             ! Writing solution                                            !
             !-------------------------------------------------------------!
