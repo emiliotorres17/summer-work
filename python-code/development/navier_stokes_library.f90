@@ -176,8 +176,10 @@ module navier_stokes_library
             do i = 0, M
                 if ( i == 0) then  
                     f(j,i)  = 0.25_WP*(dx/dt)*(ustar(j,i) - ustar(j,M) + &
+                                     vstar(j,i) - vstar(j-1,i))
                 else
                     f(j,i)  = 0.25_WP*(dx/dt)*(ustar(j,i) - ustar(j,i-1) + &
+                                     vstar(j,i) - vstar(j-1,i))
                 end if 
                 if ( i == 0) then
                     f2(j,i) = rdt*rdx*(ustar(j,i) - ustar(j,M) + &
