@@ -30,7 +30,7 @@ program main_NS
     dx          = 1.0_WP/dble(M)
     dy          = 1.0_WP/dble(N)
     dt_temp     = 0.25_WP*(dx)**(2.0_WP)/nu
-    tfinal      = 11.0_WP
+    tfinal      = 10.0_WP
     k           = 0
     Pold        = 0.0_WP
     dp_const    = 1.0_WP

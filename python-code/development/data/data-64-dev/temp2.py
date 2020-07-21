@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     M       = 64
     u       = loadtxt('u-temp.dat')[1:M+1,32]
-    uc      = loadtxt('u-temp.dat')[1:M+1,:]
-    print(uc.shape)
     dx      = 1.0/float(M)
     G       = 1.0
     mu      = 0.1
@@ -18,6 +16,8 @@ if __name__ == '__main__':
     u       = u/norm
     y       = linspace(0.5*dx, 1.0-0.5*dx, M) 
     x       = linspace(0.0, 1.0, M+1) 
+    u_exact = G/(2.0*mu)*y*(h-y)
+    u_exact = u_exact/norm
     #---------------------------------------------------------------------#
     # Font settings                                                       #
     #---------------------------------------------------------------------#
@@ -33,10 +33,15 @@ if __name__ == '__main__':
     plt.rc('ytick',     labelsize=SMALL_SIZE)       # fontsize of the tick labels
     plt.rc('legend',    fontsize=SMALL_SIZE)        # legend fontsize
     plt.rc('figure',    titlesize=BIGGER_SIZE)      # fontsize of the figure title
-    plt.plot(y, u, 'r', lw=1.5)
+    #---------------------------------------------------------------------#
+    # Font settings                                                       #
+    #---------------------------------------------------------------------#
+    plt.plot(y, u, 'r', lw=1.5,label='Simulation')
+    plt.plot(y, u_exact, 'go', markevery=8, lw=1.5, label='Exact')
     plt.grid(True)
     plt.ylabel('$\\frac{u}{Gh^{2}/2\\mu}$')
     plt.xlabel('$y/h$')
     plt.tight_layout()
+    plt.legend(loc=0)
     plt.savefig('u-poiseuille.png')
     plt.close()
