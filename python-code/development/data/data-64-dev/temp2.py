@@ -12,7 +12,7 @@ if __name__ == '__main__':
     print(uc.shape)
     dx      = 1.0/float(M)
     G       = 1.0
-    mu      = 0.5
+    mu      = 0.1
     h       = 1.0
     norm    = (G*h**2.0)/(2.0*mu)
     u       = u/norm

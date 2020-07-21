@@ -24,13 +24,13 @@ program main_NS
     !=====================================================================!
     ! Domain variables                                                    !
     !=====================================================================!
-    nu          = 0.5
+    nu          = 0.1
     rho         = 1.0_WP
     mu          = rho*nu
     dx          = 1.0_WP/dble(M)
     dy          = 1.0_WP/dble(N)
     dt_temp     = 0.25_WP*(dx)**(2.0_WP)/nu
-    tfinal      = 3.0_WP
+    tfinal      = 11.0_WP
     k           = 0
     Pold        = 0.0_WP
     dp_const    = 1.0_WP
