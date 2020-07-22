@@ -1,2 +1,76 @@
-\subsection{
+\subsection{$v^{\ast}$ velocity}
+The finite difference equations for the $\vstar$ velocity field, in the
+periodic direction, are defined below in
+Eqs.~(\ref{eq:v-star-left-boundary}-\ref{eq:v-star-interior-boundary}).
+\begin{itemize}
+    \item Left boundary (i.e., $i=0$ coding index \texttt{v(:,0)})
+        \begin{subequations}
+            \begin{equation}
+                \begin{aligned}
+                    v^{\ast}_{0,j+\frac{1}{2}} = v^{n}_{0,j+ \frac{1}{2}} & -  \Delta t\Bigg[ 
+                    \frac{
+                        \left(uv\right)^{n}_{\frac{1}{2},j+\frac{1}{2}} - \left(uv\right)^{n}_{-\frac{1}{2},j+\frac{1}{2}}
+                    }{\Delta x} +
+                    \frac{
+                        \big(v^{n}_{0,j+\frac{1}{2}}\big)^{2} - \big(v^{n}_{0,j-\frac{1}{2}}\big)^{2}
+                    }{\Delta y}
+                    \Bigg]\\
+                    & + \Delta t \Bigg[
+                        \frac{
+                            v^{n}_{1,j+\frac{1}{2}} - 2v^{n}_{0,j+\frac{1}{2}} + v^{n}_{M, j+\frac{1}{2}}
+                        }{\Delta x^{2}}
+                     + 
+                        \frac{
+                            v^{n}_{0,j+\frac{3}{2}} - 2v^{n}_{0,j+\frac{1}{2}} + v^{n}_{0,j-\frac{1}{2}}
+                        }{\Delta y^{2}}
+                        \Bigg]
+                \end{aligned}
+            \end{equation}
+            \text{where} 
+            \begin{equation}
+                u^{n}_{-\frac{1}{2},j+\frac{1}{2}} = 
+                                \frac{1}{2} \left(u^{n}_{M,j} + u^{n}_{M,j+1} \right)
+            \end{equation}
+            \begin{equation}
+                v^{n}_{-\frac{1}{2}, j+\frac{1}{2}} =
+                                \frac{1}{2} \left( v^{n}_{0, j+\frac{1}{2}} + v^{n}_{M, j+\frac{1}{2}} \right)
+            \end{equation}
+
+            \label{eq:v-star-left-boundary}
+        \end{subequations}
+    \vspace{0.1in}
+    \item Interior points (i.e., $i=0$ coding index \texttt{v(:,1:M)})
+        \begin{subequations}
+            \begin{equation}
+                \begin{aligned}
+                    v^{\ast}_{i,j+\frac{1}{2}} = v^{n}_{i,j+ \frac{1}{2}} & -  \Delta t\Bigg[ 
+                    \frac{
+                        \left(uv\right)^{n}_{i+\frac{1}{2},j+\frac{1}{2}} - \left(uv\right)^{n}_{i-\frac{1}{2},j+\frac{1}{2}}
+                    }{\Delta x} +
+                    \frac{
+                        \big(v^{n}_{i,j+\frac{1}{2}}\big)^{2} - \big(v^{n}_{i,j-\frac{1}{2}}\big)^{2}
+                    }{\Delta y}
+                    \Bigg]\\
+                    & + \Delta t \Bigg[
+                        \frac{
+                            v^{n}_{i+1,j+\frac{1}{2}} - 2v^{n}_{i,j+\frac{1}{2}} + v^{n}_{i-1, j+\frac{1}{2}}
+                        }{\Delta x^{2}}
+                     + 
+                        \frac{
+                            v^{n}_{i,j+\frac{3}{2}} - 2v^{n}_{i,j+\frac{1}{2}} + v^{n}_{i,j-\frac{1}{2}}
+                        }{\Delta y^{2}}
+                        \Bigg]
+                \end{aligned}
+            \end{equation}
+            \label{eq:v-star-interior-boundary}
+        \end{subequations}
+    \vspace{0.1in}
+\item Right boundary (i.e., $i=M+1$ coding index \texttt{v(:,M+1)})\\
+
+    Since $v$ is located at the cell center in the $i\text{-th}$ direction 
+    the values at the right boundary can be simply copied from the 
+    previously calculated left boundary.
+        
+\end{itemize}
+
 

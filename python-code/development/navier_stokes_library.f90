@@ -110,23 +110,48 @@ module navier_stokes_library
         ! Calculating Ly and Ny                                           !
         !-----------------------------------------------------------------!
         do j = 1, N 
-            do i = 1, M
+            do i = 0, M
                 !---------------------------------------------------------!
-                ! Calculating Ly                                          !
+                ! Left boundary                                           !
                 !---------------------------------------------------------!
-                Ly(j,i) = nu*dx2*(v(j,i+1) - 2.0_WP*v(j,i) + v(j,i-1)) 
-                Ly(j,i) = Ly(j,i) + nu*dy2*(v(j+1,i) - 2.0_WP*v(j,i) + v(j-1,i)) 
+                if ( i == 0) then
+                    !-----------------------------------------------------!
+                    ! Calculating Ly                                      !
+                    !-----------------------------------------------------!
+                    Ly(j,i) = nu*dx2*(v(j,i+1) - 2.0_WP*v(j,i) + v(j,M)) 
+                    Ly(j,i) = Ly(j,i) + nu*dy2*(v(j+1,i) - 2.0_WP*v(j,i) + v(j-1,i)) 
+                    !-----------------------------------------------------!
+                    ! Calculating Ny                                      !
+                    !-----------------------------------------------------!
+                    u1      = 0.5_WP*(u(j+1,i) + u(j,i))
+                    v1      = 0.5_WP*(v(j,i+1) + v(j,i))
+                    u2      = 0.5_WP*(u(j+1,M + u(j,M))
+                    v2      = 0.5_WP*(v(j,M) + v(j,i))
+                    v3      = 0.5_WP*(v(j+1,i) + v(j,i))
+                    v4      = 0.5_WP*(v(j-1,i) + v(j,i))
+                    Ny(j,i) = rdx*(u1*v1 - u2*v2)
+                    Ny(j,i) = Ny(j,i) + rdy*(v3**2.0_WP - v4**2.0_WP)
                 !---------------------------------------------------------!
-                ! Calculating Ny                                          !
+                ! Interior points                                         !
                 !---------------------------------------------------------!
-                u1      = 0.5_WP*(u(j+1,i) + u(j,i))
-                v1      = 0.5_WP*(v(j,i+1) + v(j,i))
-                u2      = 0.5_WP*(u(j+1,i-1) + u(j,i-1))
-                v2      = 0.5_WP*(v(j,i-1) + v(j,i))
-                v3      = 0.5_WP*(v(j+1,i) + v(j,i))
-                v4      = 0.5_WP*(v(j-1,i) + v(j,i))
-                Ny(j,i) = rdx*(u1*v1 - u2*v2)
-                Ny(j,i) = Ny(j,i) + rdy*(v3**2.0_WP - v4**2.0_WP)
+                else
+                    !-----------------------------------------------------!
+                    ! Calculating Ly                                      !
+                    !-----------------------------------------------------!
+                    Ly(j,i) = nu*dx2*(v(j,i+1) - 2.0_WP*v(j,i) + v(j,i-1)) 
+                    Ly(j,i) = Ly(j,i) + nu*dy2*(v(j+1,i) - 2.0_WP*v(j,i) + v(j-1,i)) 
+                    !-----------------------------------------------------!
+                    ! Calculating Ny                                      !
+                    !-----------------------------------------------------!
+                    u1      = 0.5_WP*(u(j+1,i) + u(j,i))
+                    v1      = 0.5_WP*(v(j,i+1) + v(j,i))
+                    u2      = 0.5_WP*(u(j+1,i-1) + u(j,i-1))
+                    v2      = 0.5_WP*(v(j,i-1) + v(j,i))
+                    v3      = 0.5_WP*(v(j+1,i) + v(j,i))
+                    v4      = 0.5_WP*(v(j-1,i) + v(j,i))
+                    Ny(j,i) = rdx*(u1*v1 - u2*v2)
+                    Ny(j,i) = Ny(j,i) + rdy*(v3**2.0_WP - v4**2.0_WP)
+                end if 
             end do
         end do
     end subroutine
@@ -147,7 +172,7 @@ module navier_stokes_library
         real(WP), dimension(0:N+1, 0:M+1), intent(in)       :: Pold
         real(WP)                                            :: rdx, rdy, rdt, dx2, dy2
         real(WP), dimension(0:N+1, 0:M+1), intent(out)      :: P
-        integer, intent(out)                                :: n_gs
+        integer,  intent(out)                               :: n_gs
         real(WP), intent(out)                               :: GS_error
         real(WP), dimension(0:N+1, 0:M+1)                   :: f, f2
         integer                                             :: i ,j
