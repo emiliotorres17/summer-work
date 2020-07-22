@@ -176,7 +176,7 @@ module navier_stokes_library
         real(WP), intent(out)                               :: GS_error
         real(WP), dimension(0:N+1, 0:M+1)                   :: f, f2
         integer                                             :: i ,j
-        real(WP), dimension(1:M, 1:N)                       :: res
+        real(WP), dimension(0:M+1, 0:N+1)                   :: res
         integer                                             :: counter = 0
         real(WP)                                            :: rho, omega
         real(WP)                                            :: pi = 4.0_WP*atan(1.0_WP)
@@ -194,6 +194,7 @@ module navier_stokes_library
         rho     = 0.5_WP*(cos(pi/dble(M)) + cos(pi/dble(N)))
         omega   = 2.0_WP/(1.0_WP + sqrt(1.0_WP -  rho**(2.0_WP)))
         !omega   = 1.0_WP
+        res     = 0.0_WP
         !-----------------------------------------------------------------!
         ! Calculate RHS                                                   !
         !-----------------------------------------------------------------!
@@ -226,15 +227,10 @@ module navier_stokes_library
             ! Calculating Pressure                                        !
             !-------------------------------------------------------------!
             do j = 1, N
-                do i = 0, M+1
+                do i = 0, M
                     if ( i == 0) then
                         P(j,i) = P(j,i) + & 
                                     omega*(0.25_WP*(P(j,i+1) + P(j,M) + &
-                                    P(j+1,i) + P(j-1, i)) - &
-                                    f(j,i) - P(j,i))
-                    elseif ( i == M+1) then
-                        P(j,i) = P(j,i) + & 
-                                    omega*(0.25_WP*(P(j,1) + P(j,i-1) + &
                                     P(j+1,i) + P(j-1, i)) - &
                                     f(j,i) - P(j,i))
                     else
@@ -256,10 +252,16 @@ module navier_stokes_library
             ! Calculating Pressure residual                               !
             !-------------------------------------------------------------!
             do j = 1, N
-                do i = 1, M
-                    res(j,i) = dx2*(P(j,i+1) - 2.0_WP*P(j,i) + P(j,i-1)) + &
-                            dy2*(P(j+1,i) - 2.0_WP*P(j,i) + P(j-1,i)) - &
-                            f2(j,i)
+                do i = 0, M
+                    if (i==0) then
+                        res(j,i) = dx2*(P(j,i+1) - 2.0_WP*P(j,i) + P(j,M)) + &
+                                    dy2*(P(j+1,i) - 2.0_WP*P(j,i) + P(j-1,i)) - &
+                                    f2(j,i)
+                    else
+                        res(j,i) = dx2*(P(j,i+1) - 2.0_WP*P(j,i) + P(j,i-1)) + &
+                                dy2*(P(j+1,i) - 2.0_WP*P(j,i) + P(j-1,i)) - &
+                                f2(j,i)
+                    end if 
                 end do
             end do
             !-------------------------------------------------------------!
