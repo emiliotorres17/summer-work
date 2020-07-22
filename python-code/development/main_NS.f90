@@ -120,7 +120,7 @@ program main_NS
             end do                  
         end do
         do j = 1, N-1
-            do i = 1, M
+            do i = 0, M
                 vstar(j,i)  = v(j,i) + dt*(-Ny(j,i) + Ly(j,i))
             end do
         end do
@@ -160,7 +160,7 @@ program main_NS
             end do
         end do
         do j = 1, N-1
-            do i = 1, M
+            do i = 0, M
                 v(j,i)  = vstar(j,i) - dt/dy*(P(j+1,i) - P(j,i))   
             end do
         end do
