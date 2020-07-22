@@ -125,8 +125,8 @@ module navier_stokes_library
                     !-----------------------------------------------------!
                     u1      = 0.5_WP*(u(j+1,i) + u(j,i))
                     v1      = 0.5_WP*(v(j,i+1) + v(j,i))
-                    u2      = 0.5_WP*(u(j+1,M + u(j,M))
-                    v2      = 0.5_WP*(v(j,M) + v(j,i))
+                    u2      = 0.5_WP*(u(j+1,M) + u(j,M))
+                    v2      = 0.5_WP*(v(j,M)   + v(j,i))
                     v3      = 0.5_WP*(v(j+1,i) + v(j,i))
                     v4      = 0.5_WP*(v(j-1,i) + v(j,i))
                     Ny(j,i) = rdx*(u1*v1 - u2*v2)
