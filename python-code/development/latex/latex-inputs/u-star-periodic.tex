@@ -1,12 +1,8 @@
-\section{Finite difference equations for $u^{\ast}$ velocity}
+\subsection{$u^{\ast}$ velocity}
 The finite difference equations for the $\ustar$ velocity field are defined
-below in Eqs.~(\ref{eq:star-right-boundary}-\ref{eq:star-right-boundary})
-\begin{equation}
-    y = x 
-\end{equation}
-
+below in Eqs.~(\ref{eq:star-left-boundary}-\ref{eq:star-right-boundary})
 \begin{itemize}
-    \item Left boundary (i.e., $i=1/2$ coding index \texttt{u(:,0)})
+    \item Left boundary (i.e., $i=\frac{1}{2}$ coding index \texttt{u(:,0)})
         \begin{subequations}
             \begin{equation}
                 \begin{aligned}
@@ -31,12 +27,12 @@ below in Eqs.~(\ref{eq:star-right-boundary}-\ref{eq:star-right-boundary})
             \end{equation}
             \text{where} 
             \begin{equation}
-                u^{n}_{-1,j} = \frac{1}{2} \left(u^{n}_{1/2,j} + u^{n}_{M+1/2,j} \right)
+                u^{n}_{-1,j} = \frac{1}{2} \left(u^{n}_{\frac{1}{2},j} + u^{n}_{M+\frac{1}{2},j} \right)
             \end{equation}
             \label{eq:star-left-boundary}
         \end{subequations}
     \vspace{0.1in}
-    \item Interior points (i.e., $i=\frac{3}{2}$ through $i=M-1/2$ coding index \texttt{u(:,1:M-1)})
+    \item Interior points (i.e., $i=\frac{3}{2}$ through $i=M-\frac{1}{2}$ coding index \texttt{u(:,1:M-1)})
         \begin{equation}
             \begin{aligned}
                 u^{\ast}_{i+\frac{1}{2},j} = u^{n}&_{i+\frac{1}{2},j}  -  \Delta t\Bigg[ 
