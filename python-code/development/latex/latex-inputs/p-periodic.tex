@@ -1,0 +1,33 @@
+\subsection{Pressure}
+The following finite difference equations were used to calculate the
+pressure laplacian for the left boundary and interior points. 
+
+\begin{itemize}
+    \item Left boundary (i.e., $i=0$, coding index \texttt{p(:,0)})
+        \begin{equation}
+            p_{0,j} =   \frac{
+                            p_{1,j} - 2p_{0,j} + p_{M,j}
+                            }{\Delta x^{2}}
+                            +
+                        \frac{
+                            p_{0,j+1} - 2p_{0,j} + p_{0,j}
+                            }{\Delta y^{2}}
+        \end{equation}
+    \item Interior points (i.e., $i=1$ through $i=M$, coding index
+        \texttt{p(:,1:M)})
+        \begin{equation}
+            p_{i,j} =   \frac{
+                            p_{i+1,j} - 2p_{i,j} + p_{i-1,j}
+                            }{\Delta x^{2}}
+                            +
+                        \frac{
+                            p_{i,j+1} - 2p_{i,j} + p_{i,j}
+                            }{\Delta y^{2}}
+        \end{equation}
+    \item Right boundary (i.e., $i=M+1$, coding index \texttt{p(:,M+1)}) \\
+        \\
+        Since the pressure is defined at the cell centers the pressure at 
+        $i=M+1$ can be directly copied $i=0$, namely
+        \texttt{p(:,0)=p(:,M+1)}.
+\end{itemize}
+            
