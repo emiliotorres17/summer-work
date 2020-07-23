@@ -151,7 +151,7 @@ program main_NS
     t           = 0.0_WP
     iter        = 0
     gs_iter_max = 3e05
-    max_error   = 1e-07
+    max_error   = 1e-12
     uold        = u
     vold        = v
     !=====================================================================!
