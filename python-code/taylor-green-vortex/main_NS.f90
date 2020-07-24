@@ -5,7 +5,7 @@ program main_NS
     use precision_m                                       
     use navier_stokes_library   
     implicit none
-    integer, parameter                      :: M = 64, N = 64
+    integer, parameter                      :: M = 128, N = 128
     real(WP), parameter                     :: pi = 4.0_WP*atan(1.0_WP)
     real(WP)                                :: dx, dy, nu
     real(WP)                                :: dt, dt1, dt2, a, b
@@ -29,7 +29,7 @@ program main_NS
     !=====================================================================!
     ! Domain variables                                                    !
     !=====================================================================!
-    nu          = 0.005
+    nu          = 0.1
     rho         = 1.0_WP
     mu          = rho*nu
     dx          = 2.0_WP*pi/dble(M)
@@ -157,12 +157,12 @@ program main_NS
     !=====================================================================!
     ! Writing variables                                                   !
     !=====================================================================!
-    open(unit=1, file='data/data-64/u-temp.dat')
-    open(unit=2, file='data/data-64/v-temp.dat')
-    open(unit=3, file='data/data-64/u-star-temp.dat')
-    open(unit=4, file='data/data-64/v-star-temp.dat')
-    open(unit=5, file='data/data-64/p-temp.dat')
-    open(unit=120, file='data/data-64/output.txt')
+    open(unit=1, file='data/data-128/u-temp.dat')
+    open(unit=2, file='data/data-128/v-temp.dat')
+    open(unit=3, file='data/data-128/u-star-temp.dat')
+    open(unit=4, file='data/data-128/v-star-temp.dat')
+    open(unit=5, file='data/data-128/p-temp.dat')
+    open(unit=120, file='data/data-128/output.txt')
     10 format(300ES25.10)
     12 format(A, ES25.5, 4X, A, I5, A, I10, /, 4x, A, I10, & 
                 /, 4x, A, ES25.5, & 

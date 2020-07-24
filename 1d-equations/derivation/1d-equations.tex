@@ -1,0 +1,111 @@
+\documentclass[12pt]{article}
+\newcommand{\pdftitle}{1d-NS-equations}
+\input{preamble}
+
+
+\fancyhead[L]{1D Navier-Stokes Equations}
+\fancyhead[C]{}
+\fancyhead[R]{E. Torres}
+\renewcommand{\headrulewidth}{1.0pt}
+
+\fancyfoot[L]{\today}
+\fancyfoot[C]{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\footrulewidth}{1.0pt}
+
+\begin{document}
+\section{1D Navier-Stokes Equations}
+\subsection{Derivation}
+Starting with the 2D Navier-Stokes (NS) Equation, namely
+\begin{subequations}
+    \begin{equation}
+        \pdv{u}{t} + \pdv{uu}{x} + \pdv{uv}{y} = 
+                -\frac{1}{\rho} \pdv{p}{x} 
+                + \nu \left( \pdv{u}{x}{x} + \pdv{u}{y}{y} \right) 
+        \label{eq:NS-u}
+    \end{equation}
+    \begin{equation}
+        \pdv{v}{t} + \pdv{uv}{x} + \pdv{vv}{y} = 
+                -\frac{1}{\rho} \pdv{p}{y} 
+                + \nu \left( \pdv{v}{x}{x} + \pdv{v}{y}{y} \right) 
+        \label{eq:NS-v}
+    \end{equation}
+\end{subequations}
+where for 1D all the gradients in the $y$-direction are zero 
+($\pdv*{(\;)}{y}=0$), reducing Eqs.~(\ref{eq:NS-u},\ref{eq:NS-v}) to
+\begin{subequations}
+    \begin{equation}
+        \pdv{u}{t} + \pdv{uu}{x} = 
+            -\frac{1}{\rho} \pdv{p}{x}
+            + \nu \pdv{u}{x}{x}
+        \label{eq:NS-u-1d}
+    \end{equation}
+    \begin{equation}
+        \pdv{v}{t} + \pdv{uv}{x} =
+            \nu \pdv{v}{x}{x}
+        \label{eq:NS-v-1d}
+    \end{equation}
+\end{subequations}
+Next, we recognize that the transport of $u$ is independent of $v$ and can
+be obtained solely from Eq.~(\ref{eq:NS-u-1d}).  Similarly to solving the
+2D-NS equations, we can apply the fractional step method and separate
+Eq.~(\ref{eq:NS-u-1d}) into the following steps 
+\begin{subequations}
+    \begin{equation}
+        \pdv{u}{t} =  - \pdv{uu}{x} + \nu \pdv{u}{x}{x} 
+        \hspace{0.25cm}
+        : u^{n} \rightarrow u^{\ast}
+        \label{eq:NS-un-1d}
+    \end{equation}
+    \begin{equation}
+        \pdv{u}{t} = -\frac{1}{\rho} \pdv{p}{x}
+        \hspace{0.25cm}
+        : u^{\ast} \rightarrow u^{n+1}
+        \label{eq:NS-ustar-1d}
+    \end{equation}
+\end{subequations}
+Next, the pressure is calculated by taking the divergence of
+Eq.~(\ref{eq:NS-ustar-1d}) and applying the continuity equation,  
+\begin{subequations}
+    \begin{align}
+        -\frac{1}{\rho} \text{div}(\text{grad}(p)) & =
+                \text{div}\bigg(\pdv{u}{t}\bigg)        \\
+        -\frac{1}{\rho} \text{div}(\text{grad}(p)) & =
+            \frac{
+                    \cancel{\text{div}\big(u^{n+1}_{i+\frac{1}{2}}\big)} -
+                    \text{div}\big(u^{\ast}_{i+\frac{1}{2}}\big)
+                }
+                {\Delta t}
+    \end{align}
+\end{subequations}
+Thus
+\begin{equation}
+    -\frac{1}{\rho} \text{div}(\text{grad}(p)) =
+        \frac{1}{\Delta t} \text{div} \big(u^{\ast}_{i+\frac{1}{2}}\big)
+\end{equation}
+\newpage
+\subsection{Finite Difference Equations}
+Discretetizing the above equations gives the following finite difference
+formulas, starting with Eq.~(\ref{eq:NS-un-1d})
+
+\colorboxed{
+    \frac{u^{\ast}_{i+\frac{1}{2}} - u^{n}_{i+\frac{1}{2}}}{\Delta t} =
+        -\frac{\big(u^{n}_{i+1}\big)^{2} - \big(u^{n}_{i-1}\big)^{2}}
+        {\Delta x}
+        +\nu 
+        \frac{u^{n}_{i+\frac{3}{2}} - 2 u^{n}_{i+\frac{1}{2}} + u^{n}_{i-\frac{1}{2}}}
+        {\Delta x ^{2}}
+        }
+Next, the finite difference scheme for the pressure calculation,
+\colorboxed{
+    \frac{1}{\rho} \left( \frac{p_{i+1} -2 p_{i} + p_{i-1}} {\Delta x^2} \right) =
+            \frac{1}{\Delta t} \Bigg(\frac{u^{\ast}_{i+\frac{1}{2}} - u^{\ast}_{i-\frac{1}{2}}}
+            {\Delta x}  \Bigg)
+        }
+Lastly the time advancing scheme,
+\colorboxed{
+    \frac{u^{n+1}_{i+\frac{1}{2}} - u^{\ast}_{i+\frac{1}{2}}}{\Delta t} =
+        -\frac{1}{\rho}\left(\frac{p_{i+1} - p_{i}}{\Delta x} \right)
+    }
+        
+\end{document}
