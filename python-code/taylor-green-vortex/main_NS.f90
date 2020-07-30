@@ -5,14 +5,13 @@ program main_NS
     use precision_m                                       
     use navier_stokes_library   
     implicit none
-    integer, parameter                      :: M = 128, N = 128
+    integer, parameter                      :: M = 128, N = 128, kmax = 20000
     real(WP), parameter                     :: pi = 4.0_WP*atan(1.0_WP)
     real(WP)                                :: dx, dy, nu
     real(WP)                                :: dt, dt1, dt2, a, b
     real(WP), dimension(0:N+1, 0:M)         :: u, ustar, uold, Lx, Nx, a_grid 
     real(WP), dimension(0:N, 0:M+1)         :: v, vstar, vold, Ly, Ny, b_grid
     real(WP), dimension(0:N+1, 0:M+1)       :: P, Pold, grad_p, dp_const
-    real(WP)                                :: ut, ul, ur, ub, vl, vr, vt, vb
     real(WP)                                :: max_error
     real(WP)                                :: tfinal, t, dt_temp
     real(WP)                                :: gs_err
@@ -26,6 +25,47 @@ program main_NS
     real(WP), dimension(0:N+1)              :: y1
     real(WP), dimension(0:M+1)              :: x2
     real(WP), dimension(0:N)                :: y2
+    real(WP), dimension(0:kmax)             :: u_max, v_max, tval
+    !=====================================================================!
+    ! Files and formats                                                   !
+    !=====================================================================!
+    print *, 'here'
+    !---------------------------------------------------------------------!
+    ! Initial conditions                                                  !
+    !---------------------------------------------------------------------!
+    24 format(ES25.16)
+    23 format(256ES25.16)
+    open(unit=101, file='data/decay-data-2/u-x.dat')
+    open(unit=102, file='data/decay-data-2/u-y.dat')
+    open(unit=103, file='data/decay-data-2/u-IC.dat')
+    open(unit=104, file='data/decay-data-2/v-x.dat')
+    open(unit=105, file='data/decay-data-2/v-y.dat')
+    open(unit=106, file='data/decay-data-2/v-IC.dat')
+    !---------------------------------------------------------------------!
+    ! Time varying files                                                  !
+    !---------------------------------------------------------------------!
+    open(unit=1, file='data/decay-data-2/u-temp.dat')
+    open(unit=2, file='data/decay-data-2/v-temp.dat')
+    open(unit=3, file='data/decay-data-2/u-star-temp.dat')
+    open(unit=4, file='data/decay-data-2/v-star-temp.dat')
+    open(unit=5, file='data/decay-data-2/p-temp.dat')
+    open(unit=120, file='data/decay-data-2/output.txt')
+    10 format(300ES25.10)
+    12 format(A, ES25.5, 4X, A, I5, A, I10, /, 4x, A, I10, & 
+                /, 4x, A, ES25.5, & 
+                /, A, ES25.16, &
+                /, 4X, A, ES25.5, &
+                /, 4X, A, ES27.14, &
+                /, 4X, A, ES27.14)
+    13 format(/)
+    !---------------------------------------------------------------------!
+    ! Maximum velocities and corresponding times                          !
+    !---------------------------------------------------------------------!
+    print *, 'here-->2'
+    11 format(3ES35.18)
+    print *, 'here-->3'
+    open(unit=206, file='data/decay-data-2/maximum-velocities.dat')
+    print *, 'here-->4'
     !=====================================================================!
     ! Domain variables                                                    !
     !=====================================================================!
@@ -35,24 +75,22 @@ program main_NS
     dx          = 2.0_WP*pi/dble(M)
     dy          = 2.0_WP*pi/dble(N)
     dt_temp     = 0.25_WP*(dx)**(2.0_WP)/nu
-    tfinal      = 10.0_WP
+    tfinal      = 20.0_WP
     k           = 0
     Pold        = 0.0_WP
     dp_const    = 1.0_WP
-    !---------------------------------------------------------------------!
-    ! Boundary conditions                                                 !
-    !---------------------------------------------------------------------!
-    ul          = 0.0_WP
-    ur          = 0.0_WP
-    ub          = 0.0_WP
-    ut          = 0.0_WP
-    vl          = 0.0_WP
-    vr          = 0.0_WP
-    vt          = 0.0_WP
-    vb          = 0.0_WP
     !=====================================================================!
     ! Preallocating velocities and initializing velocities                !
     !=====================================================================!
+    !---------------------------------------------------------------------!
+    ! Maximum velocities                                                  !
+    !---------------------------------------------------------------------!
+    u_max       = 0.0
+    v_max       = 0.0
+    tval        = 0.0
+    !---------------------------------------------------------------------!
+    ! Velocities                                                          !
+    !---------------------------------------------------------------------!
     u           = 0.0_WP
     v           = 0.0_WP
     ustar       = 0.0_WP
@@ -106,20 +144,10 @@ program main_NS
     !---------------------------------------------------------------------!
     ! Setting u-y boundary conditions                                     !
     !---------------------------------------------------------------------!
-    !v(:,0)      = v(:,M+1)  
+    !v(:,M+1)    = v(:,0)  
     v(0,:)      = -sin(x2)*cos(0.0_WP)
     v(N,:)      = -sin(x2)*cos(2.0_WP*pi)
-    !=====================================================================!
-    ! Temporary files to verify ICs                                       !
-    !=====================================================================!
-    24 format(ES25.16)
-    23 format(70ES25.16)
-    open(unit=101, file='data/IC-data/u-x.dat')
-    open(unit=102, file='data/IC-data/u-y.dat')
-    open(unit=103, file='data/IC-data/u-IC.dat')
-    open(unit=104, file='data/IC-data/v-x.dat')
-    open(unit=105, file='data/IC-data/v-y.dat')
-    open(unit=106, file='data/IC-data/v-IC.dat')
+    !v(:,M+1)    = v(:,0)
     !---------------------------------------------------------------------!
     ! Initial condition for u                                             !
     !---------------------------------------------------------------------!
@@ -151,28 +179,20 @@ program main_NS
     t           = 0.0_WP
     iter        = 0
     gs_iter_max = 3e05
-    max_error   = 1e-12
+    max_error   = 1e-5
     uold        = u
     vold        = v
+    !---------------------------------------------------------------------!
+    ! Storing the maximum velocity output                                 !
+    !---------------------------------------------------------------------!
+    u_max(0)    = maxval(u)
+    v_max(0)    = maxval(v)
+    tval(0)     = t
     !=====================================================================!
     ! Writing variables                                                   !
     !=====================================================================!
-    open(unit=1, file='data/data-128/u-temp.dat')
-    open(unit=2, file='data/data-128/v-temp.dat')
-    open(unit=3, file='data/data-128/u-star-temp.dat')
-    open(unit=4, file='data/data-128/v-star-temp.dat')
-    open(unit=5, file='data/data-128/p-temp.dat')
-    open(unit=120, file='data/data-128/output.txt')
-    10 format(300ES25.10)
-    12 format(A, ES25.5, 4X, A, I5, A, I10, /, 4x, A, I10, & 
-                /, 4x, A, ES25.5, & 
-                /, A, ES25.16, &
-                /, 4X, A, ES25.5, &
-                /, 4X, A, ES27.14, &
-                /, 4X, A, ES27.14)
-    13 format(/)
     do while (t < tfinal)
-        k = k + 1
+        k       = k + 1
         !-----------------------------------------------------------------!
         ! time step calculation                                           !
         !-----------------------------------------------------------------!
@@ -210,24 +230,15 @@ program main_NS
         !-----------------------------------------------------------------!
         ! Setting u-y boundary conditions                                 !
         !-----------------------------------------------------------------!
-        vstar(0,:)   = -sin(x2)*exp(-2.0_WP*nu*t)
-        vstar(N,:)   = -sin(x2)*exp(-2.0_WP*nu*t)
-        !vstar(:,0)   = vstar(:,M+1)  
+        vstar(0,:)      = -sin(x2)*exp(-2.0_WP*nu*t)
+        vstar(N,:)      = -sin(x2)*exp(-2.0_WP*nu*t)
+        vstar(:,M+1)    = vstar(:,0)  
         !-----------------------------------------------------------------!
         ! Pressure                                                        !
         !-----------------------------------------------------------------!
         call pressure_calc(P, gs_iter, gs_err, M, N, Pold, ustar, vstar, &
                             dx, dy, dt, max_error, gs_iter_max)
         Pold = P
-        !-----------------------------------------------------------------!
-        ! Pressure gradient                                               !
-        !-----------------------------------------------------------------!
-        grad_p = 0.0_WP
-        do j = 1, N
-            do i = 1, M
-                grad_p(j,i) = (P(j,i+1) - P(j,i))/dx
-            end do
-        end do
         !-----------------------------------------------------------------!
         ! Velocities                                                      !
         !-----------------------------------------------------------------!
@@ -251,7 +262,7 @@ program main_NS
         !-----------------------------------------------------------------!
         v(0,:)  = -sin(x2)*exp(-2.0_WP*nu*t)
         v(N,:)  = -sin(x2)*exp(-2.0_WP*nu*t)
-        !v(:,0)  = v(:,M+1)  
+        v(:,M+1)= v(:,0)  
         !-----------------------------------------------------------------!
         ! Steady state check                                              !
         !-----------------------------------------------------------------!
@@ -289,6 +300,14 @@ program main_NS
         print '(4X, A, ES25.5)', 'steady state check -->', ss_val
         print '(4X, A, ES27.14)', 'mid u-velocity -->', 0.5*(u(N/2, M/2) + u((N+2)/2,M/2))
         print '(4X, A, ES27.14)', 'mid v-velocity -->', 0.5*(v(N/2, M/2) + v(N/2,(M+2)/2))
+        !-----------------------------------------------------------------!
+        ! Updating iterations and getting the maximum velocities          !
+        !-----------------------------------------------------------------!
+        print   *, maxval(u)
+        print   *, maxval(V)
+        u_max(k)    = maxval(u)
+        v_max(k)    = maxval(v)
+        tval(k)     = t
     end do
     !---------------------------------------------------------------------!
     ! Writing velocities                                                  !
@@ -317,5 +336,12 @@ program main_NS
         write(5, 10) (P(j,i), i=0, M+1)
     end do
     write(5, 13)
+    !---------------------------------------------------------------------!
+    ! Writing maximum velocities and corresponding times                  !
+    !---------------------------------------------------------------------!
+    print *, k
+    do i = 0,k
+        write(206, 11) u_max(i), v_max(i), tval(i)
+    end do
 
 end program main_NS
