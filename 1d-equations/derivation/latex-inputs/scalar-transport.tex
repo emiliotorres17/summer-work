@@ -1,0 +1,43 @@
+\section{Scalar Transport}
+Starting with the scalar transport equation
+\begin{equation}
+    \pdv{\phi}{t} + \pdv{\phi u}{x} + \pdv{\phi v}{y} =
+        \pdv{}{x}\left(\Gamma \pdv{\phi}{x} \right)
+        \pdv{}{y}\left(\Gamma \pdv{\phi}{y} \right)
+\end{equation}
+where for 1D and a uniform diffusivity constant $\Gamma$, the above
+equation reduces to 
+\begin{equation}
+    \pdv{\phi}{t} + \pdv{\phi v}{y} =
+        \Gamma \pdv{\phi}{y}{y}
+        \label{eq:scalar-1d}
+\end{equation}
+\subsection{Finite Difference Equations}
+Next, defining the scalar values at the cell centers one can obtain the
+following discrete equation 
+\begin{equation}
+    \frac{\phi^{n+1}_{j} - \phi^{n}_{j}}{\Delta t} + 
+    \frac{
+        \left(\phi v \right)^{n}_{j+\frac{1}{2}} -
+        \left(\phi v \right)^{n}_{j-\frac{1}{2}}
+    }{\Delta y}
+    =
+    \Gamma 
+    \frac{
+        \phi^{n}_{j+1} - 2\phi^{n}_{j} + \phi^{n}_{j-1}
+    }{\Delta y^{2}}
+\end{equation}
+Thus
+\colorboxed{
+    \phi^{n+1}_{j} =
+        \phi^{n}_{j} 
+        - \Delta t 
+            \frac{
+                \left(\phi v \right)^{n}_{j+\frac{1}{2}} -
+                \left(\phi v \right)^{n}_{j-\frac{1}{2}}
+            }{\Delta y}
+        + \Gamma \Delta t
+            \frac{
+                \phi^{n}_{j+1} - 2\phi^{n}_{j} + \phi^{n}_{j-1}
+            }{\Delta y^{2}}
+}

@@ -4,7 +4,7 @@ module navier_stokes_library_1d
     !=====================================================================!
     use precision_m
     implicit none
-    public :: time_derv_calc, pressure_calc
+    public :: time_derv_calc, pressure_calc, scalar_transport, u_time_derv
     contains
     !=====================================================================!
     ! Time derivate                                                       !
@@ -26,6 +26,8 @@ module navier_stokes_library_1d
         !-----------------------------------------------------------------!
         rdy     = 1.0_WP/dy
         rdy2    = 1.0_WP/(dy)**2.0_WP
+        Ly      = 0.0_WP
+        Ny      = 0.0_WP
         !-----------------------------------------------------------------!
         ! Looping over domain                                             !
         !-----------------------------------------------------------------!
@@ -117,13 +119,14 @@ module navier_stokes_library_1d
     !=====================================================================!
     ! u time derivative                                                   !
     !=====================================================================!
-    subroutine u_time_derv(unew, M, u, v, dt, dy, nu)
+    subroutine u_time_derv(unew, M, u, v, dp_dx, dt, dy, nu)
         !-----------------------------------------------------------------!
         ! u time derivative preamble                                      !
         !-----------------------------------------------------------------!
         integer, intent(in)                             :: M
         real(WP), dimension(0:M), intent(in)            :: v
         real(WP), dimension(0:M+1), intent(in)          :: u
+        real(WP), intent(in)                            :: dp_dx
         real(WP), intent(in)                            :: dt, dy, nu
         real(WP), dimension(0:M+1), intent(out)         :: unew
         real(WP)                                        :: u1, u2
@@ -141,8 +144,43 @@ module navier_stokes_library_1d
             u1      = 0.5_WP*(u(j) + u(j+1)) 
             u2      = 0.5_WP*(u(j) + u(j-1)) 
             unew(j) = u(j)-rdy*dt*(u1*v(j) - u2*v(j-1))  &
-                            + rdy2*dt*nu*(u(j+1)-2.0_WP*u(j) + u(j-1))
+                            + rdy2*dt*nu*(u(j+1)-2.0_WP*u(j) + u(j-1)) &
+                            + dt*dp_dx
         end do
+    end subroutine
+    !=====================================================================!
+    ! Scalar transport                                                    !
+    !=====================================================================!
+    subroutine scalar_transport(phinew, M, phiold, v, dt, dy, dif)
+        integer, intent(in)                             :: M
+        real(WP), dimension(0:M), intent(in)            :: v
+        real(WP), dimension(0:M+1), intent(in)          :: phiold
+        real(WP), intent(in)                            :: dt, dy, dif
+        real(WP), dimension(0:M+1), intent(out)         :: phinew
+        real(WP)                                        :: phi1, phi2
+        real(WP)                                        :: rdy, rdy2
+        integer                                         :: i
+        !-----------------------------------------------------------------!
+        ! Domain variables                                                !
+        !-----------------------------------------------------------------!
+        phinew  = 0.0_WP
+        rdy     = 1.0_WP/dy
+        rdy2    = (1.0_WP/dy)**2.0_WP
+        !-----------------------------------------------------------------!
+        ! time advancing                                                  !
+        !-----------------------------------------------------------------!
+        do i = 1, M
+            phi1        = 0.5_WP*(phiold(i) + phiold(i+1))    
+            phi2        = 0.5_WP*(phiold(i) + phiold(i-1))    
+            phinew(i)   = phiold(i) - dt*rdy*(phi1*v(i) - phi2*v(i-1)) + &
+                            dif*dt*rdy2*(phiold(i+1) - 2.0_WP*phiold(i) +  phiold(i-1))
+            !phinew(i)   = phiold(i) + dif*dt*rdy2*(phiold(i+1) - 2.0_WP*phiold(i) +  phiold(i-1))
+        end do
+        !-----------------------------------------------------------------!
+        ! Neumann boundary conditions                                     !
+        !-----------------------------------------------------------------!
+        phinew(0)       = 0.0_WP
+        phinew(M+1)     = 0.0_WP
     end subroutine
 end module
 

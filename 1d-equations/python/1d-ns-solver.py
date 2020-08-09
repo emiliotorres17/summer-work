@@ -18,6 +18,10 @@ import sys
 from subprocess import call
 from numpy import *
 import matplotlib.pyplot as plt
+#-------------------------------------------------------------------------#
+# User packages                                                           #
+#-------------------------------------------------------------------------#
+from ales_post.plot_settings    import plot_setting
 #=========================================================================#
 # User defined functions                                                  #
 #=========================================================================#
@@ -76,14 +80,15 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------#
     # Domain variables                                                    #
     #---------------------------------------------------------------------#
-    M       = 128
-    nu      = 0.05
-    dx      = 1.0/float(M)
-    rdx     = 1./dx
-    rdx2    = 1./(dx**2.)
-    dt      = 0.25*dx**2.0/nu
-    t       = 0.0
-    tfinal  = 15.0
+    M           = 128
+    nu          = 0.05
+    dx          = 1.0/float(M)
+    rdx         = 1./dx
+    rdx2        = 1./(dx**2.)
+    dt          = 0.25*dx**2.0/nu
+    t           = 0.0
+    tfinal      = 15.0
+    dp_const    = 0.0
     #---------------------------------------------------------------------#
     # Iteration variables                                                 #
     #---------------------------------------------------------------------#
@@ -92,7 +97,7 @@ if __name__ == '__main__':
     # Wall velocities                                                     #
     #---------------------------------------------------------------------#
     ub      = 0.0
-    ut      = 0.0
+    ut      = 1.0
     vt      = 0.0
     vb      = 0.0
     #---------------------------------------------------------------------#
@@ -130,7 +135,7 @@ if __name__ == '__main__':
             u2      = 0.5*(u[j] +  u[j-1])
             unew[j] = u[j] - dt*rdx*(u1*v[j] - u2*v[j-1]) \
                         + nu*dt*rdx2*(u[j+1] - 2.*u[j] + u[j-1])\
-                        + dt*10.0
+                        + dt*dp_const
         unew[0]     = 2.*ub - unew[1]
         unew[M+1]   = 2.*ut - unew[M]
         u           = copy(unew)
@@ -177,33 +182,18 @@ if __name__ == '__main__':
             print('maximum u vel. --> %10.5e'           %(amax(abs(u))))
             count   = 0
     #---------------------------------------------------------------------#
-    # Font settings                                                       #
-    #---------------------------------------------------------------------#
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif')
-    SMALL_SIZE = 14
-    MEDIUM_SIZE = 18
-    BIGGER_SIZE = 12
-    plt.rc('font',      size=SMALL_SIZE)            # controls default text sizes
-    plt.rc('axes',      titlesize=SMALL_SIZE)       # fontsize of the axes title
-    plt.rc('axes',      labelsize=MEDIUM_SIZE)      # fontsize of the x and y labels
-    plt.rc('xtick',     labelsize=SMALL_SIZE)       # fontsize of the tick labels
-    plt.rc('ytick',     labelsize=SMALL_SIZE)       # fontsize of the tick labels
-    plt.rc('legend',    fontsize=SMALL_SIZE)        # legend fontsize
-    plt.rc('figure',    titlesize=BIGGER_SIZE)      # fontsize of the figure title
-    plt.tight_layout()
-    #---------------------------------------------------------------------#
     # Plotting                                                            #
     #---------------------------------------------------------------------#
+    plot_setting()
     y   = linspace(0.5*dx, 1.0-0.5*dx, M)
-    uE  = 10./(2.*nu)*y*(1.-y)
-    plt.plot(y, uE/(10./(2.*nu)), 'k--', lw=3.0, label='Exact')
-    plt.plot(y, u[1:M+1]/(10.0/(2.*nu)), 'r', lw=1.5, label='Simulation')
+    uE  = copy(y)
+    plt.plot(y, uE, 'k--', lw=3.0, label='Exact')
+    plt.plot(y, u[1:M+1], 'r', lw=1.5, label='Simulation')
     plt.legend(loc=0)
     plt.grid(True)
     plt.xlabel('$0 \leq y \leq$')
     plt.ylabel('$u(y)$')
-    plt.savefig(media_path +  'u-poiseuille.png')
+    plt.savefig(media_path +  'u-lid-cavity.png')
     plt.show()
     plt.close()
             
