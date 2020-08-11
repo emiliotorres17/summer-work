@@ -11,13 +11,15 @@ program navier_stokes_1D
     real(WP), dimension(0:M+1)                      :: y
     real(WP), dimension(0:M)                        :: v, vstar
     real(WP), dimension(0:M+1)                      :: u , unew
-    real(WP), dimension(M+1)                        :: spec1, spec1_new
+    real(WP), dimension(0:M+1)                        :: spec1, spec1_new
     real(WP)                                        :: ut, ub, vt, vb, v1, v2
     real(WP), dimension(0:M+1)                      :: p, pold
     real(WP)                                        :: dp_dx
     real(WP)                                        :: t, tfinal
     real(WP)                                        :: rdy, rdy2
     real(WP)                                        :: gs_error, gs_max
+    real(WP), dimension(0:M+1)                      :: phinew
+    real(WP)                                        :: phi1, phi2
     integer                                         :: counter, iter_max, n_gs
     integer                                         :: j, i, q
     !---------------------------------------------------------------------!
@@ -25,47 +27,51 @@ program navier_stokes_1D
     !---------------------------------------------------------------------!
     10 format(f25.16)
     11 format(2f25.16)
-    open(unit=20, file='data/data-scalar-transport/u-data.dat')
-    open(unit=21, file='data/data-scalar-transport/v-data.dat')
-    open(unit=22, file='data/data-scalar-transport/phi-data.dat')
-    open(unit=23, file='data/data-scalar-transport/pressure-data.dat')
+    open(unit=20, file='data/data-scalar-advection/u-data.dat')
+    open(unit=21, file='data/data-scalar-advection/v-data.dat')
+    open(unit=22, file='data/data-scalar-advection/phi-data.dat')
+    open(unit=23, file='data/data-scalar-advection/pressure-data.dat')
+    open(unit=24, file='data/data-scalar-advection/constants.dat')
     !---------------------------------------------------------------------!
     ! Domain variables                                                    !
     !---------------------------------------------------------------------!
     dy      = 1.0_WP/dble(M) 
     rdy     = 1.0_WP/dy
     rdy2    = (1.0_WP/dy)**2.0_WP
-    nu      = 0.1_WP
+    nu      = 0.01_WP
     dif     = 0.01_WP
     !dt      = 0.25_WP*dy**2.0_WP/nu
-    dt      = 0.0001_WP
+    dt      = 0.00001_WP
     dp_dx   = 0.0_WP
     t       = 0.0_WP
-    tfinal  = 10.0_WP 
+    tfinal  = 0.15_WP 
     !---------------------------------------------------------------------!
     ! Wall velocities                                                     !
     !---------------------------------------------------------------------!
     ut      = 0.0_WP
     ub      = 0.0_WP
-    vt      = 0.1_WP
-    vb      = 0.1_WP
+    vt      = 1.0_WP
+    vb      = 1.0_WP
     !---------------------------------------------------------------------!
     ! Preallocating variables                                             !
     !---------------------------------------------------------------------!
     u       = 0.0_WP
     unew    = 0.0_WP
     v       = 0.0_WP
-    vstar   = 0.0_WP
+    !vstar   = 0.0_WP
+    vstar   = vt
     p       = 0.0_WP
     pold    = 0.0_WP
     spec1   = 0.0_WP
+    phinew  = 0.0_WP
     !---------------------------------------------------------------------!
     ! Setting boundary conditions                                         !
     !---------------------------------------------------------------------!
-    u(0)    = 2.0_WP*ub - u(1)
-    u(M+1)  = 2.0_WP*ut - u(M)
-    v(0)    = vb
-    v(M)    = vt
+    u(0)        = 2.0_WP*ub - u(1)
+    u(M+1)      = 2.0_WP*ut - u(M)
+    v(0)        = vb
+    v(M)        = vt
+    v(1:M-1)    = vt 
     !---------------------------------------------------------------------!
     ! Convergence criteria                                                !
     !---------------------------------------------------------------------!
@@ -75,16 +81,27 @@ program navier_stokes_1D
     !---------------------------------------------------------------------!
     ! Initial condition for phi                                           !
     !---------------------------------------------------------------------!
-    sigma       = 1.0_WP/6.0_WP
     y(0)        = -0.5_WP*dy
     do i = 1, M+1
         y(i)    = y(i-1)+dy 
     end do
-    do i = 1, M
-        spec1(i)  = -8.0_WP*(y(i)-0.5_WP)**2.0_WP + 2.0_WP
+    !do i = 1, M
+    !    spec1(i)  = -8.0_WP*(y(i)-0.5_WP)**2.0_WP + 2.0_WP
+    !end do
+    !spec1(0)    = -spec1(1)
+    !spec1(M+1)  = -spec1(M)
+    !---------------------------------------------------------------------!
+    ! Initial condition for phi                                           !
+    !---------------------------------------------------------------------!
+    do i = 0, M+1
+        if (y(i) < 0.5) then
+            spec1(i) = 0.0_WP
+        else if (i >= 0.5) then
+            spec1(i) = 1.0_WP
+        end if
     end do
     spec1(0)    = -spec1(1)
-    spec1(M+1)  = -spec1(M)
+    spec1(M+1)  = 2.0_WP-spec1(M+1)
     !---------------------------------------------------------------------!
     ! Time loop                                                           !
     !---------------------------------------------------------------------!
@@ -104,10 +121,16 @@ program navier_stokes_1D
         !-----------------------------------------------------------------!
         ! Calculating scalar transport                                    !
         !-----------------------------------------------------------------!
-        call scalar_transport(spec1_new, M, spec1, v, dt, dy, dif)
-        spec1       = spec1_new
+        !call scalar_transport(spec1_new, M, spec1, v, dt, dy, dif)
+        do i = 1, M
+            phi1        = 0.5_WP*(spec1(i) + spec1(i+1))    
+            phi2        = 0.5_WP*(spec1(i) + spec1(i-1))    
+            phinew(i)   = spec1(i) - dt*rdy*(phi1*v(i) - phi2*v(i-1)) + &
+                            dif*dt*rdy2*(spec1(i+1) - 2.0_WP*spec1(i) +  spec1(i-1))
+        end do
+        spec1       = phinew
         spec1(0)    = -spec1(1)
-        spec1(M+1)  = -spec1(M)
+        spec1(M+1)  = 2.0_WP-spec1(M)
         !-----------------------------------------------------------------!
         ! Calculating vstar                                               !
         !-----------------------------------------------------------------!
@@ -149,7 +172,7 @@ program navier_stokes_1D
             print '(4X, A, ES27.14)', 'mid v-velocity -->', 0.5*(v(M/2) + v(M/2+1))
             print *, '/'
             counter = 0
-        end if 
+        end if
     end do
     !---------------------------------------------------------------------!
     ! Print u velocity                                                    !
@@ -176,4 +199,10 @@ program navier_stokes_1D
         write(23, 11)    y(i), P(i)
     end do
     print *, maxval(spec1)
+    !---------------------------------------------------------------------!
+    ! Printing constants                                                  !
+    !---------------------------------------------------------------------!
+    write(24, 10)   t
+    write(24, 10)   nu
+    write(24, 10)   dif
 end program
