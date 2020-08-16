@@ -32,13 +32,20 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------#
     # Domain variables                                                    #
     #---------------------------------------------------------------------#
-    M       = 128
+    M       = 1024
     dx      = 1./float(M)
     #---------------------------------------------------------------------#
     # Loading data                                                        #
     #---------------------------------------------------------------------#
-    y       = loadtxt('phi-data.dat')[:,0]
-    phi     = loadtxt('phi-data.dat')[:,1]
+    y       = loadtxt('phi-data.dat')[int(0*(M+2)):int(1*(M+2)),0]
+    y0      = loadtxt('phi-data.dat')[int(0*(M+2)):int(1*(M+2)),0]
+    phi0    = loadtxt('phi-data.dat')[int(0*(M+2)):int(1*(M+2)),1]
+    y1      = loadtxt('phi-data.dat')[int(1*(M+2)):int(2*(M+2)),0]
+    phi1    = loadtxt('phi-data.dat')[int(1*(M+2)):int(2*(M+2)),1]
+    y2      = loadtxt('phi-data.dat')[int(2*(M+2)):int(3*(M+2)),0]
+    phi2    = loadtxt('phi-data.dat')[int(2*(M+2)):int(3*(M+2)),1]
+    y3      = loadtxt('phi-data.dat')[int(3*(M+2)):int(4*(M+2)),0]
+    phi3    = loadtxt('phi-data.dat')[int(3*(M+2)):int(4*(M+2)),1]
     v       = loadtxt('v-data.dat')
     u       = loadtxt('u-data.dat')
     const   = loadtxt('constants.dat')
@@ -53,26 +60,26 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------#
     # Initial conditions                                                  #
     #---------------------------------------------------------------------#
-    phi0        = zeros(len(y))
+    phiE        = zeros(len(y))
     for i in range(0, len(y)):
         if y[i] < 0.5:
-            phi0[i] = 0.0
+            phiE[i] = 0.0
         else:
-            phi0[i] = 1.0
-    phi0[0]     = -phi0[1]
-    phi0[M+1]   = 2.0-phi0[M]
+            phiE[i] = 1.0
+    phiE[0]     = -phiE[1]
+    phiE[M+1]   = 2.0-phiE[M]
     #---------------------------------------------------------------------#
     # Phi field                                                           #
     #---------------------------------------------------------------------#
     plot_setting()
     if phi_field is True:
-        plt.plot(y, phi0, 'k--', lw=3.0, label='$\\varphi_{0}$')
-        plt.plot(y, phi, 'r', lw=1.5,\
-                label='$\\varphi(t) = %4.2f$'    %(time))
-        plt.title('$\phi$')
+        plt.plot(y0, phi0, 'k--', lw=3.0, label='$\zeta(y,t=0)$')
+        plt.plot(y1, phi1, 'r', lw=1.5, label='$\zeta(y,t=1)$')
+        plt.plot(y2, phi2, 'b', lw=1.5, label='$\zeta(y,t=2)$')
+        plt.plot(y3, phi3, 'g', lw=1.5, label='$\zeta(y,t=3)$')
         plt.legend(loc=0)
         plt.grid(True)
-        plt.savefig('phi-%4.2f.png'     %(time))
+        plt.savefig('zeta-high-dif%4.2f.png'     %(time))
         plt.show()
     #---------------------------------------------------------------------#
     # v field                                                             #
